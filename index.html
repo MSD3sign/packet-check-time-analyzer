@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Associate Traffic Analyzer · Portfolio Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+        
+        .app-container {
+            background: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+        
+        .container {
+            display: flex;
+            min-height: calc(100vh - 160px);
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .left-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .left-stack .card {
+            margin-bottom: 0;
+        }
+        
+        #dashboardCard.card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .dashboard-controls {
+            margin-bottom: 1rem;
+        }
+        
+        .dashboard-controls label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .dashboard-controls input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        #dashboardChart {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        
+        #dashboardChart svg {
+            width: 100%;
+        }
+        
+        nav {
+            width: 250px;
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 2rem 1.5rem;
+            border-right: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        nav h3 {
+            color: #1a202c;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        nav ul {
+            list-style: none;
+        }
+        
+        nav li {
+            margin-bottom: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        nav li:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        nav li.disabled {
+            color: #a0aec0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        nav li.disabled:hover {
+            background: white;
+            color: #a0aec0;
+            transform: none;
+        }
+        
+        main {
+            flex: 1;
+            padding: 2rem;
+            background: #f8fafc;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .dropdown {
+            margin-bottom: 2rem;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 100px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .controls-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 0.5rem 0.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(72, 187, 120, 0.4);
+        }
+        
+        select {
+            padding: 0.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .filter-label {
+            font-size: 0.9rem;
+            margin: 0;
+            color: #4a5568;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.3rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        td {
+            padding: 0.3rem 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        
+        tr:hover {
+            background: #edf2f7;
+            transition: background-color 0.2s ease;
+        }
+        
+        h2 {
+            color: #1a202c;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .section-divider {
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 1rem;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            border-radius: 4px;
+            color: white;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .footer-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #cbd5e0;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-accent {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.4);
+        }
+
+        .demo-note {
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+            color: #4a5568;
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 8px;
+            padding: 0.6rem 0.9rem;
+        }
+
+        .footer-address {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .footer-links a {
+            color: #90cdf4;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            nav {
+                width: 100%;
+                padding: 1rem;
+            }
+            
+            nav ul {
+                display: flex;
+                gap: 0.5rem;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+            
+            nav li {
+                min-width: 120px;
+                text-align: center;
+                white-space: nowrap;
+            }
+            
+            main {
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .controls-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            table {
+                font-size: 0.8rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+            
+            header h1 {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            header {
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+            
+            textarea {
+                height: 75px;
+            }
+            
+            table {
+                font-size: 0.7rem;
+            }
+            
+            th, td {
+                padding: 0.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>🚶 Associate Traffic Analyzer <span style="font-size: 0.5em;">Portfolio Edition</span></h1>
+        </header>
+        
+        <div class="container">
+            <main>
+                <div class="cards-container">
+                    <div class="left-stack">
+                        <div class="card">
+                            <div class="dropdown">
+                                <label for="walkInput">Paste the shift report data here:</label>
+                                <textarea id="walkInput" placeholder="Paste shift report lines here — or click “Load sample data” to try the demo..."></textarea>
+                                <div class="button-group">
+                                    <button class="btn-primary" type="button" onclick="processShiftReport()">
+                                        🔄 Generate Result
+                                    </button>
+                                    <button class="btn-accent" type="button" onclick="loadSampleData()">
+                                        📥 Load sample data
+                                    </button>
+                                    <button class="btn-secondary" type="button" onclick="clearFields()">
+                                        🧹 Clean
+                                    </button>
+                                </div>
+                                <p class="demo-note">Portfolio demo — the sample dataset is fictional and safe to explore.</p>
+                            </div>
+                        </div>
+
+                        <div class="card" id="dashboardCard" style="display: none;">
+                            <h2>📊 Dashboard</h2>
+                            <div class="dashboard-controls">
+                                <label for="dashboardFollowFilter">
+                                    <input type="checkbox" id="dashboardFollowFilter" onchange="toggleDashboardSync()">
+                                    Show only the current filter values
+                                </label>
+                            </div>
+                            <div id="dashboardChart"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="controls-group">
+                            <button class="btn-primary" type="button" onclick="printSummaryTable()">🖨️ Print</button>
+                            <div style="display: none;" id="filterContainer">
+                                <label class="filter-label">Peak periods to highlight:</label>
+                                <select id="topFilter" onchange="filterTopResults()">
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="resumen"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        
+                <footer>
+            <div class="footer-content">
+                <div class="footer-name">MSD3sign</div>
+                <div class="footer-title">Portfolio Project · Associate Traffic Analyzer · by Miguel Salazar</div>
+                <div class="footer-address">Built to turn raw shift data into staffing decisions.</div>
+                <div class="footer-links">
+                    <a href="https://github.com/MSD3sign/packet-check-time-analyzer" target="_blank" rel="noopener">GitHub</a>
+                    <a href="https://www.linkedin.com/in/miguel-salazar-416703243" target="_blank" rel="noopener">LinkedIn</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="text/javascript">
+        (function() {
+            'use strict';
+            
+            var allRowsData = [];
+            var dashboardSyncWithFilter = false;
+            
+            function timeToSlot(timeStr) {
+                var match = timeStr.match(/(\d{1,2}):(\d{2})([AP])/);
+                if (!match) return null;
+                var hour = parseInt(match[1], 10);
+                var minute = parseInt(match[2], 10);
+                var ampm = match[3];
+                if (ampm === "P" && hour !== 12) hour += 12;
+                if (ampm === "A" && hour === 12) hour = 0;
+                var totalMinutes = hour * 60 + minute;
+                return Math.floor(totalMinutes / 30) * 30;
+            }
+
+            function slotToTime(slot) {
+                var hour = Math.floor(slot / 60);
+                var minute = slot % 60;
+                var ampm = hour >= 12 ? "PM" : "AM";
+                var displayHour = hour % 12 === 0 ? 12 : hour % 12;
+                return displayHour + ":" + (minute === 0 ? "00" : "30") + " " + ampm;
+            }
+            
+            function detectSeasonal(line, scheduleMatch, mealMatch, schedHrsMatch) {
+                // The FWT/SEA column sits between the Schedule column and the Meal column.
+                // Its value, when present, is a lone "F" or "S" letter.
+                if (!scheduleMatch) return false;
+                var start = scheduleMatch.index + scheduleMatch[0].length;
+                var end = line.length;
+                if (mealMatch) {
+                    end = mealMatch.index;
+                } else if (schedHrsMatch) {
+                    end = schedHrsMatch.index;
+                }
+                if (end <= start) return false;
+                var segment = line.substring(start, end);
+                return /(^|[^A-Za-z0-9])([FS])([^A-Za-z0-9]|$)/.test(segment);
+            }
+
+            function processShiftReport() {
+                var input = document.getElementById("walkInput").value;
+                var lines = input.split(/\n|\r/);
+                var resumen = {};
+                var resumenSeasonal = {};
+                var mealResumen = {};
+                var mealResumenSeasonal = {};
+
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (/^\d{8} -/.test(line) && line.indexOf("00000000 - OPEN") === -1) {
+                        var parts = line.split(/\s{2,}|\t+/).filter(function(p) { return p.trim() !== ""; });
+                        var assocMatch = line.match(/^(\d{8}) - ([^\d]+)/);
+                        if (!assocMatch) continue;
+                        var assoc = assocMatch[1];
+                        var name = assocMatch[2].trim().replace(/,$/, "");
+                        var scheduleMatch = line.match(/(\d{1,2}:\d{2}[AP]) - (\d{1,2}:\d{2}[AP])/);
+                        var schedule = scheduleMatch ? scheduleMatch[0] : "";
+                        var mealMatch = line.match(/(\d{1,2}:\d{2}[AP])\/\d{2}/);
+                        var meal = mealMatch ? mealMatch[0] : "";
+                        var schedHrsMatch = line.match(/\s(\d+\.\d{2})\s/);
+                        var schedHrs = schedHrsMatch ? parseFloat(schedHrsMatch[1]) : 0;
+                        if (schedHrs === 0) continue;
+
+                        var isSeasonal = detectSeasonal(line, scheduleMatch, mealMatch, schedHrsMatch);
+
+                        if (schedule) {
+                            var endTime = schedule.split(" - ")[1];
+                            var slot = timeToSlot(endTime);
+                            if (slot !== null) {
+                                resumen[slot] = (resumen[slot] || 0) + 1;
+                                if (isSeasonal) {
+                                    resumenSeasonal[slot] = (resumenSeasonal[slot] || 0) + 1;
+                                }
+                            }
+                        }
+
+                        if (meal) {
+                            var mealTime = meal.split("/")[0];
+                            var slot = timeToSlot(mealTime);
+                            if (slot !== null) {
+                                mealResumen[slot] = (mealResumen[slot] || 0) + 1;
+                                if (isSeasonal) {
+                                    mealResumenSeasonal[slot] = (mealResumenSeasonal[slot] || 0) + 1;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                allRowsData = [];
+                for (var slot = 0; slot < 1440; slot += 30) {
+                    var salida = resumen[slot] || 0;
+                    var meal = mealResumen[slot] || 0;
+                    var total = salida + meal;
+                    
+                    if (total > 0) {
+                        allRowsData.push({
+                            slot: slot,
+                            hora: slotToTime(slot),
+                            salida: salida,
+                            meal: meal,
+                            total: total,
+                            salidaSeasonal: resumenSeasonal[slot] || 0,
+                            mealSeasonal: mealResumenSeasonal[slot] || 0
+                        });
+                    }
+                }
+
+                allRowsData.sort(function(a, b) { return a.slot - b.slot; });
+                generateFilterOptions();
+                displayTable(allRowsData);
+                updateDashboard();
+                document.getElementById("filterContainer").style.display = "flex";
+            }
+
+            function generateFilterOptions() {
+                var select = document.getElementById("topFilter");
+                select.innerHTML = '<option value="all">All</option>';
+                
+                for (var i = 1; i <= allRowsData.length; i++) {
+                    var option = document.createElement("option");
+                    option.value = i;
+                    option.textContent = i;
+                    select.appendChild(option);
+                }
+            }
+
+            function getCurrentFilteredData() {
+                var topCount = document.getElementById("topFilter").value;
+
+                if (topCount === "all") {
+                    return allRowsData;
+                }
+
+                var sortedByTotal = allRowsData.slice().sort(function(a, b) { return b.total - a.total; });
+                var topResults = sortedByTotal.slice(0, parseInt(topCount, 10));
+                topResults.sort(function(a, b) { return a.slot - b.slot; });
+                return topResults;
+            }
+
+            function updateDashboard() {
+                if (dashboardSyncWithFilter) {
+                    renderDashboard(getCurrentFilteredData());
+                } else {
+                    renderDashboard(allRowsData);
+                }
+            }
+
+            function toggleDashboardSync() {
+                dashboardSyncWithFilter = document.getElementById("dashboardFollowFilter").checked;
+                updateDashboard();
+            }
+
+            function filterTopResults() {
+                var filteredData = getCurrentFilteredData();
+                displayTable(filteredData);
+                updateDashboard();
+            }
+
+            function formatCountWithSeasonal(count, seasonalCount) {
+                if (count <= 0) return "";
+                if (seasonalCount > 0) {
+                    return count + " (" + seasonalCount + ")";
+                }
+                return String(count);
+            }
+
+            function displayTable(rowsData) {
+                var scheduleOutRows = [];
+                var mealOutRows = [];
+                
+                for (var i = 0; i < rowsData.length; i++) {
+                    var row = rowsData[i];
+                    if (row.salida >= row.meal) {
+                        scheduleOutRows.push(row);
+                    } else {
+                        mealOutRows.push(row);
+                    }
+                }
+                
+                var resumenHtml = "<h2>⏰ Shift traffic by 30 min</h2>";
+                
+                if (scheduleOutRows.length > 0) {
+                    resumenHtml += "<table><tr><th>Hour</th><th>Schedule Out</th><th>Meal Out</th><th>Total</th></tr>";
+                    for (var i = 0; i < scheduleOutRows.length; i++) {
+                        var row = scheduleOutRows[i];
+                        var salidaDisplay = formatCountWithSeasonal(row.salida, row.salidaSeasonal);
+                        var mealDisplay = formatCountWithSeasonal(row.meal, row.mealSeasonal);
+                        resumenHtml += "<tr><td>" + row.hora + "</td><td>" + salidaDisplay + "</td><td>" + mealDisplay + "</td><td>" + row.total + "</td></tr>";
+                    }
+                    resumenHtml += "</table>";
+                }
+                
+                if (mealOutRows.length > 0) {
+                    resumenHtml += "<div class='section-divider'>🍽️ Lunch Time Only</div>";
+                    resumenHtml += "<table><tr><th>Hour</th><th>Schedule Out</th><th>Meal Out</th><th>Total</th></tr>";
+                    for (var i = 0; i < mealOutRows.length; i++) {
+                        var row = mealOutRows[i];
+                        var salidaDisplay = formatCountWithSeasonal(row.salida, row.salidaSeasonal);
+                        var mealDisplay = formatCountWithSeasonal(row.meal, row.mealSeasonal);
+                        resumenHtml += "<tr><td>" + row.hora + "</td><td>" + salidaDisplay + "</td><td>" + mealDisplay + "</td><td>" + row.total + "</td></tr>";
+                    }
+                    resumenHtml += "</table>";
+                }
+                
+                document.getElementById("resumen").innerHTML = resumenHtml;
+            }
+
+            function renderDashboard(rowsData) {
+                var dashboardCard = document.getElementById("dashboardCard");
+                var chartContainer = document.getElementById("dashboardChart");
+
+                if (!rowsData || rowsData.length === 0) {
+                    dashboardCard.style.display = "none";
+                    chartContainer.innerHTML = "";
+                    return;
+                }
+
+                var hourlyTotals = {};
+                for (var i = 0; i < rowsData.length; i++) {
+                    var row = rowsData[i];
+                    var hour = Math.floor(row.slot / 60);
+                    hourlyTotals[hour] = (hourlyTotals[hour] || 0) + row.total;
+                }
+
+                var hours = Object.keys(hourlyTotals).map(Number).sort(function(a, b) { return a - b; });
+                var maxTotal = 0;
+                for (var h = 0; h < hours.length; h++) {
+                    if (hourlyTotals[hours[h]] > maxTotal) maxTotal = hourlyTotals[hours[h]];
+                }
+                if (maxTotal === 0) maxTotal = 1;
+
+                function hourLabel(hour) {
+                    var ampm = hour >= 12 ? "PM" : "AM";
+                    var displayHour = hour % 12 === 0 ? 12 : hour % 12;
+                    return displayHour + ampm;
+                }
+
+                var chartHeight = 220;
+                var barWidth = 44;
+                var gap = 14;
+                var leftPad = 10;
+                var topPad = 20;
+                var bottomPad = 40;
+                var svgWidth = leftPad + hours.length * (barWidth + gap);
+                var svgHeight = chartHeight + topPad + bottomPad;
+
+                var bars = "";
+                for (var h = 0; h < hours.length; h++) {
+                    var hour = hours[h];
+                    var value = hourlyTotals[hour];
+                    var barHeight = Math.round((value / maxTotal) * chartHeight);
+                    var x = leftPad + h * (barWidth + gap);
+                    var y = topPad + (chartHeight - barHeight);
+                    bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + barHeight + '" rx="4" fill="url(#barGradient)"></rect>';
+                    bars += '<text x="' + (x + barWidth / 2) + '" y="' + (y - 6) + '" text-anchor="middle" font-size="12" font-weight="700" fill="#1a202c">' + value + '</text>';
+                    bars += '<text x="' + (x + barWidth / 2) + '" y="' + (topPad + chartHeight + 20) + '" text-anchor="middle" font-size="11" fill="#4a5568">' + hourLabel(hour) + '</text>';
+                }
+
+                var svg = '<svg viewBox="0 0 ' + svgWidth + ' ' + svgHeight + '" width="100%" style="max-width:100%; height:auto;">' +
+                    '<defs><linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">' +
+                    '<stop offset="0%" stop-color="#667eea"></stop>' +
+                    '<stop offset="100%" stop-color="#764ba2"></stop>' +
+                    '</linearGradient></defs>' +
+                    '<line x1="' + leftPad + '" y1="' + (topPad + chartHeight) + '" x2="' + svgWidth + '" y2="' + (topPad + chartHeight) + '" stroke="#e2e8f0" stroke-width="2"></line>' +
+                    bars +
+                    '</svg>';
+
+                chartContainer.innerHTML = svg;
+                dashboardCard.style.display = "flex";
+            }
+            
+            function clearFields() {
+                document.getElementById("walkInput").value = "";
+                document.getElementById("resumen").innerHTML = "";
+                document.getElementById("filterContainer").style.display = "none";
+                document.getElementById("topFilter").value = "all";
+                document.getElementById("dashboardCard").style.display = "none";
+                document.getElementById("dashboardChart").innerHTML = "";
+                document.getElementById("dashboardFollowFilter").checked = false;
+                dashboardSyncWithFilter = false;
+                allRowsData = [];
+            }
+            
+           
+			function printSummaryTable() {
+				var resumenElement = document.getElementById("resumen");
+				
+				if (!resumenElement || !resumenElement.innerHTML.trim() || allRowsData.length === 0) {
+					alert("Summary table not found.");
+					return;
+				}
+
+				var today = new Date();
+				var dateStr = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
+
+				// CAMBIO PRINCIPAL: Obtener los datos filtrados actualmente mostrados
+				var topCount = document.getElementById("topFilter").value;
+				var currentDisplayData;
+				
+				if (topCount === "all") {
+					currentDisplayData = allRowsData;
+				} else {
+					var sortedByTotal = allRowsData.slice().sort(function(a, b) { return b.total - a.total; });
+					currentDisplayData = sortedByTotal.slice(0, parseInt(topCount, 10));
+					currentDisplayData.sort(function(a, b) { return a.slot - b.slot; });
+				}
+
+				// Usar currentDisplayData en lugar de allRowsData
+				var scheduleOutRows = [];
+				var mealOutRows = [];
+				
+				for (var i = 0; i < currentDisplayData.length; i++) {
+					var row = currentDisplayData[i];
+					if (row.salida >= row.meal) {
+						scheduleOutRows.push(row);
+					} else {
+						mealOutRows.push(row);
+					}
+				}
+
+				var printHtml = '<!DOCTYPE html><html><head><title>Associate Traffic Report</title>';
+				printHtml += '<style>';
+				printHtml += 'body { font-family: Arial, sans-serif; margin: 20px; }';
+				printHtml += 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
+				printHtml += 'th, td { border: 1px solid #000; padding: 8px; text-align: left; }';
+				printHtml += 'th { background-color: #f0f0f0; font-weight: bold; font-size: 10pt; }';
+				printHtml += 'td { min-height: 30px; font-size: 10pt; }';
+				printHtml += '.header { text-align: center; margin-bottom: 15px; }';
+				printHtml += '.header h1 { margin: 5px 0; font-size: 16pt; }';
+				printHtml += '.logo { font-size: 20pt; font-weight: bold; }';
+				printHtml += '.section-header { background-color: #666; color: white; text-align: center; font-weight: bold; }';
+				printHtml += '.footer-row { border-top: 2px solid #000; }';
+				printHtml += '</style></head><body>';
+
+				printHtml += '<div class="header">';
+				printHtml += '<div class="logo">📊 Associate Traffic Report</div>';
+				printHtml += '<h1>Shift Report — Bag Check Schedule</h1>';
+				printHtml += '</div>';
+
+				printHtml += '<table>';
+				printHtml += '<tr>';
+				printHtml += '<th>Time of Bag Check</th>';
+				printHtml += '<th>Overall Associate #</th>';
+				printHtml += '<th>Seasonals</th>';
+				printHtml += '<th>Assigned Officer</th>';
+				printHtml += '<th>Door Assigned</th>';
+				printHtml += '</tr>';
+
+				for (var i = 0; i < scheduleOutRows.length; i++) {
+					var row = scheduleOutRows[i];
+					var seasonalTotal = (row.salidaSeasonal || 0) + (row.mealSeasonal || 0);
+					printHtml += '<tr>';
+					printHtml += '<td>' + row.hora + '</td>';
+					printHtml += '<td>' + row.total + '</td>';
+					printHtml += '<td>' + (seasonalTotal > 0 ? seasonalTotal : '&nbsp;') + '</td>';
+					printHtml += '<td>&nbsp;</td>';
+					printHtml += '<td>&nbsp;</td>';
+					printHtml += '</tr>';
+				}
+
+				if (mealOutRows.length > 0) {
+					printHtml += '<tr class="section-header">';
+					printHtml += '<td colspan="5">Lunch Time Only</td>';
+					printHtml += '</tr>';
+
+					for (var i = 0; i < mealOutRows.length; i++) {
+						var row = mealOutRows[i];
+						var seasonalTotal = (row.salidaSeasonal || 0) + (row.mealSeasonal || 0);
+						printHtml += '<tr>';
+						printHtml += '<td>' + row.hora + '</td>';
+						printHtml += '<td>' + row.total + '</td>';
+						printHtml += '<td>' + (seasonalTotal > 0 ? seasonalTotal : '&nbsp;') + '</td>';
+						printHtml += '<td>&nbsp;</td>';
+						printHtml += '<td>&nbsp;</td>';
+						printHtml += '</tr>';
+					}
+				}
+
+				var totalRows = scheduleOutRows.length + mealOutRows.length + (mealOutRows.length > 0 ? 1 : 0);
+				var emptyRowsNeeded = Math.max(0, 20 - totalRows);
+				
+				for (var i = 0; i < emptyRowsNeeded; i++) {
+					printHtml += '<tr>';
+					printHtml += '<td>&nbsp;</td>';
+					printHtml += '<td>&nbsp;</td>';
+					printHtml += '<td>&nbsp;</td>';
+					printHtml += '<td>&nbsp;</td>';
+					printHtml += '<td>&nbsp;</td>';
+					printHtml += '</tr>';
+				}
+				/* arreglando dia   */
+				var daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];  
+				var dayName = daysOfWeek[today.getDay()];
+
+				printHtml += '<tr class="footer-row">';
+				printHtml += '<td colspan="2"><strong>Day:</strong> ' + dayName + '</td>';
+				printHtml += '<td colspan="3"><strong>Date:</strong> ' + dateStr + '</td>';
+				printHtml += '</tr>';
+
+				printHtml += '</table>';
+				printHtml += '</body></html>';
+
+				var printWindow = window.open('', '_blank');
+				printWindow.document.write(printHtml);
+				printWindow.document.close();
+				printWindow.focus();
+				setTimeout(function() {
+					printWindow.print();
+				}, 250);
+			}
+            
+            var SAMPLE_DATA = [
+                "SHIFT REPORT - SAMPLE DATA (fictional associates)",
+                "10000001 - GARCIA, MARIA      9:00A - 5:00P  S  1:00P/30   8.00  REG",
+                "10000002 - RODRIGUEZ, JAMES      9:00A - 5:00P     1:00P/30   8.00  REG",
+                "10000003 - MARTINEZ, ANA      9:00A - 5:00P  S  1:30P/30   8.00  REG",
+                "10000004 - HERNANDEZ, LUIS      9:00A - 5:00P     1:00P/30   8.00  REG",
+                "10000005 - LOPEZ, CARMEN      9:00A - 5:00P     1:30P/30   8.00  REG",
+                "10000006 - GONZALEZ, PEDRO      9:00A - 5:00P  S  1:00P/30   8.00  REG",
+                "10000007 - WILSON, SARAH      9:00A - 5:00P     1:00P/30   8.00  REG",
+                "10000008 - ANDERSON, MICHAEL      9:00A - 5:00P     1:30P/30   8.00  REG",
+                "10000009 - TAYLOR, EMILY      8:30A - 4:30P     12:30P/30   8.00  REG",
+                "10000010 - THOMAS, DAVID      8:30A - 4:30P  S  12:30P/30   8.00  REG",
+                "10000011 - MOORE, JESSICA      8:30A - 4:30P     1:00P/30   8.00  REG",
+                "10000012 - JACKSON, ROBERT      8:30A - 4:30P     12:30P/30   8.00  REG",
+                "10000013 - WHITE, ASHLEY      8:30A - 4:30P     1:00P/30   8.00  REG",
+                "10000014 - HARRIS, DANIEL      10:00A - 6:00P     2:00P/30   8.00  REG",
+                "10000015 - MARTIN, LAURA      10:00A - 6:00P  S  2:00P/30   8.00  REG",
+                "10000016 - THOMPSON, KEVIN      10:00A - 6:00P     2:30P/30   8.00  REG",
+                "10000017 - GARCIA, LUCIA      10:00A - 6:00P     2:00P/30   8.00  REG",
+                "10000018 - ROBINSON, BRIAN      10:00A - 6:00P  S  2:30P/30   8.00  REG",
+                "10000019 - CLARK, NICOLE      10:00A - 6:00P     2:00P/30   8.00  REG",
+                "10000020 - LEWIS, MARK      12:00P - 8:00P     4:00P/30   8.00  REG",
+                "10000021 - LEE, SOPHIA      12:00P - 8:00P  S  4:00P/30   8.00  REG",
+                "10000022 - WALKER, JASON      12:00P - 8:00P     4:30P/30   8.00  REG",
+                "10000023 - HALL, EMMA      12:00P - 8:00P     4:00P/30   8.00  REG",
+                "10000024 - ALLEN, CHRIS      12:00P - 8:00P     4:30P/30   8.00  REG",
+                "10000025 - YOUNG, OLIVIA      2:00P - 10:00P     6:00P/30   8.00  REG",
+                "10000026 - KING, ANTHONY      2:00P - 10:00P  S  6:00P/30   8.00  REG",
+                "10000027 - WRIGHT, ISABELLA      2:00P - 10:00P     6:30P/30   8.00  REG",
+                "10000028 - SCOTT, MATTHEW      2:00P - 10:00P     6:00P/30   8.00  REG",
+                "10000029 - GREEN, AVA      2:00P - 10:00P  S  6:30P/30   8.00  REG",
+                "10000030 - BAKER, DANIEL      2:00P - 10:00P     6:00P/30   8.00  REG",
+            ].join("\n");
+
+            function loadSampleData() {
+                document.getElementById("walkInput").value = SAMPLE_DATA;
+                processShiftReport();
+            }
+
+            window.processShiftReport = processShiftReport;
+            window.loadSampleData = loadSampleData;
+            window.clearFields = clearFields;
+            window.printSummaryTable = printSummaryTable;
+            window.filterTopResults = filterTopResults;
+            window.toggleDashboardSync = toggleDashboardSync;
+        })();
+    </script>
+</body>
+</html>
