@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚶 PC's Time Analyzer</title>
+    <title>Associate Traffic Analyzer · Portfolio Project</title>
     <style>
         * {
             margin: 0;
@@ -337,6 +337,48 @@
             margin-bottom: 1rem;
         }
         
+        .btn-accent {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.4);
+        }
+
+        .demo-note {
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+            color: #4a5568;
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 8px;
+            padding: 0.6rem 0.9rem;
+        }
+
+        .footer-address {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .footer-links a {
+            color: #90cdf4;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .container {
@@ -426,7 +468,7 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>🚶 Packet Check Time Analyzer <span style="font-size: 0.5em;">v2.8.1</span></h1>
+            <h1>🚶 Associate Traffic Analyzer <span style="font-size: 0.5em;">Portfolio Edition</span></h1>
         </header>
         
         <div class="container">
@@ -435,16 +477,20 @@
                     <div class="left-stack">
                         <div class="card">
                             <div class="dropdown">
-                                <label for="walkInput">Copy the entire Walk Report page here:</label>
-                                <textarea id="walkInput" placeholder="Paste the content of the Walk Report here..."></textarea>
+                                <label for="walkInput">Paste the shift report data here:</label>
+                                <textarea id="walkInput" placeholder="Paste shift report lines here — or click “Load sample data” to try the demo..."></textarea>
                                 <div class="button-group">
-                                    <button class="btn-primary" type="button" onclick="procesarWalkReport()">
+                                    <button class="btn-primary" type="button" onclick="processShiftReport()">
                                         🔄 Generate Result
                                     </button>
-                                    <button class="btn-secondary" type="button" onclick="limpiarCampos()">
+                                    <button class="btn-accent" type="button" onclick="loadSampleData()">
+                                        📥 Load sample data
+                                    </button>
+                                    <button class="btn-secondary" type="button" onclick="clearFields()">
                                         🧹 Clean
                                     </button>
                                 </div>
+                                <p class="demo-note">Portfolio demo — the sample dataset is fictional and safe to explore.</p>
                             </div>
                         </div>
 
@@ -453,7 +499,7 @@
                             <div class="dashboard-controls">
                                 <label for="dashboardFollowFilter">
                                     <input type="checkbox" id="dashboardFollowFilter" onchange="toggleDashboardSync()">
-                                    Show only the current Walk Report filter values
+                                    Show only the current filter values
                                 </label>
                             </div>
                             <div id="dashboardChart"></div>
@@ -462,9 +508,9 @@
                     
                     <div class="card">
                         <div class="controls-group">
-                            <button class="btn-primary" type="button" onclick="printResumenTable()">🖨️ Print</button>
+                            <button class="btn-primary" type="button" onclick="printSummaryTable()">🖨️ Print</button>
                             <div style="display: none;" id="filterContainer">
-                                <label class="filter-label">Select the Package Check Quantity for the day:</label>
+                                <label class="filter-label">Peak periods to highlight:</label>
                                 <select id="topFilter" onchange="filterTopResults()">
                                     <option value="all">All</option>
                                 </select>
@@ -476,29 +522,16 @@
             </main>
         </div>
         
-        <footer>
+                <footer>
             <div class="footer-content">
-                <div class="footer-name">Intended for AP Department </div>
-                <div class="footer-title">Version v2.8.1 updated (09/22/2026)</div>
-            </div>
-			<div class="footer-content">
-                <div class="footer-name">Miguel Salazar</div>  
+                <div class="footer-name">MSD3sign</div>
+                <div class="footer-title">Portfolio Project · Associate Traffic Analyzer · by Miguel Salazar</div>
+                <div class="footer-address">Built to turn raw shift data into staffing decisions.</div>
                 <div class="footer-links">
-                    <a href="mailto:msd3sing@gmail.com" class="footer-email">
-                        <svg class="email-icon" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                        </svg>
-                        msd3sing@gmail.com
-                    </a>
-                    <a href="https://www.linkedin.com/in/miguel-salazar-416703243" class="footer-linkedin" target="_blank">
-                        <svg class="linkedin-icon" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z"/>
-                        </svg>
-                        LinkedIn
-                    </a>
+                    <a href="https://github.com/MSD3sign/packet-check-time-analyzer" target="_blank" rel="noopener">GitHub</a>
+                    <a href="https://www.linkedin.com/in/miguel-salazar-416703243" target="_blank" rel="noopener">LinkedIn</a>
                 </div>
-            </div> <!-- -->
+            </div>
         </footer>
     </div>
 
@@ -545,7 +578,7 @@
                 return /(^|[^A-Za-z0-9])([FS])([^A-Za-z0-9]|$)/.test(segment);
             }
 
-            function procesarWalkReport() {
+            function processShiftReport() {
                 var input = document.getElementById("walkInput").value;
                 var lines = input.split(/\n|\r/);
                 var resumen = {};
@@ -686,7 +719,7 @@
                     }
                 }
                 
-                var resumenHtml = "<h2>⏰ Walk Report by 30 min</h2>";
+                var resumenHtml = "<h2>⏰ Shift traffic by 30 min</h2>";
                 
                 if (scheduleOutRows.length > 0) {
                     resumenHtml += "<table><tr><th>Hour</th><th>Schedule Out</th><th>Meal Out</th><th>Total</th></tr>";
@@ -778,7 +811,7 @@
                 dashboardCard.style.display = "flex";
             }
             
-            function limpiarCampos() {
+            function clearFields() {
                 document.getElementById("walkInput").value = "";
                 document.getElementById("resumen").innerHTML = "";
                 document.getElementById("filterContainer").style.display = "none";
@@ -790,115 +823,8 @@
                 allRowsData = [];
             }
             
-           /* function printResumenTable() {
-                var resumenElement = document.getElementById("resumen");
-                
-                if (!resumenElement || !resumenElement.innerHTML.trim() || allRowsData.length === 0) {
-                    alert("Summary table not found.");
-                    return;
-                }
-
-                var today = new Date();
-                var dateStr = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
-
-                var scheduleOutRows = [];
-                var mealOutRows = [];
-                
-                for (var i = 0; i < allRowsData.length; i++) {
-                    var row = allRowsData[i];
-                    if (row.salida >= row.meal) {
-                        scheduleOutRows.push(row);
-                    } else {
-                        mealOutRows.push(row);
-                    }
-                }
-
-                var printHtml = '<!DOCTYPE html><html><head><title>Walk Report Package Check</title>';
-                printHtml += '<style>';
-                printHtml += 'body { font-family: Arial, sans-serif; margin: 20px; }';
-                printHtml += 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
-                printHtml += 'th, td { border: 1px solid #000; padding: 8px; text-align: left; }';
-                printHtml += 'th { background-color: #f0f0f0; font-weight: bold; font-size: 10pt; }';
-                printHtml += 'td { min-height: 30px; font-size: 10pt; }';
-                printHtml += '.header { text-align: center; margin-bottom: 15px; }';
-                printHtml += '.header h1 { margin: 5px 0; font-size: 16pt; }';
-                printHtml += '.logo { font-size: 20pt; font-weight: bold; }';
-                printHtml += '.section-header { background-color: #666; color: white; text-align: center; font-weight: bold; }';
-                printHtml += '.footer-row { border-top: 2px solid #000; }';
-                printHtml += '</style></head><body>';
-
-                printHtml += '<div class="header">';
-                printHtml += '<div class="logo">★ macy\'s</div>';
-                printHtml += '<h1>Walk Report Package Check</h1>';
-                printHtml += '</div>';
-
-                printHtml += '<table>';
-                printHtml += '<tr>';
-                printHtml += '<th>Time Of Package Check</th>';
-                printHtml += '<th>Overall Associate #</th>';
-                printHtml += '<th>Seasonals</th>';
-                printHtml += '<th>Assigned Detective to do the Package check</th>';
-                printHtml += '<th>Detective Door Assigned</th>';
-                printHtml += '</tr>';
-
-                for (var i = 0; i < scheduleOutRows.length; i++) {
-                    var row = scheduleOutRows[i];
-                    printHtml += '<tr>';
-                    printHtml += '<td>' + row.hora + '</td>';
-                    printHtml += '<td>' + row.total + '</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '</tr>';
-                }
-
-                if (mealOutRows.length > 0) {
-                    printHtml += '<tr class="section-header">';
-                    printHtml += '<td colspan="5">Lunch Time Only</td>';
-                    printHtml += '</tr>';
-
-                    for (var i = 0; i < mealOutRows.length; i++) {
-                        var row = mealOutRows[i];
-                        printHtml += '<tr>';
-                        printHtml += '<td>' + row.hora + '</td>';
-                        printHtml += '<td>' + row.total + '</td>';
-                        printHtml += '<td>&nbsp;</td>';
-                        printHtml += '<td>&nbsp;</td>';
-                        printHtml += '<td>&nbsp;</td>';
-                        printHtml += '</tr>';
-                    }
-                }
-
-                var totalRows = scheduleOutRows.length + mealOutRows.length + (mealOutRows.length > 0 ? 1 : 0);
-                var emptyRowsNeeded = Math.max(0, 20 - totalRows);
-                
-                for (var i = 0; i < emptyRowsNeeded; i++) {
-                    printHtml += '<tr>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '</tr>';
-                }
-
-                printHtml += '<tr class="footer-row">';
-                printHtml += '<td colspan="2"><strong>Day:</strong> ___________</td>';
-                printHtml += '<td colspan="3"><strong>Date:</strong> ' + dateStr + '</td>';
-                printHtml += '</tr>';
-
-                printHtml += '</table>';
-                printHtml += '</body></html>';
-
-                var printWindow = window.open('', '_blank');
-                printWindow.document.write(printHtml);
-                printWindow.document.close();
-                printWindow.focus();
-                setTimeout(function() {
-                    printWindow.print();
-                }, 250);
-            } */
-			function printResumenTable() {
+           
+			function printSummaryTable() {
 				var resumenElement = document.getElementById("resumen");
 				
 				if (!resumenElement || !resumenElement.innerHTML.trim() || allRowsData.length === 0) {
@@ -934,7 +860,7 @@
 					}
 				}
 
-				var printHtml = '<!DOCTYPE html><html><head><title>Walk Report Package Check</title>';
+				var printHtml = '<!DOCTYPE html><html><head><title>Associate Traffic Report</title>';
 				printHtml += '<style>';
 				printHtml += 'body { font-family: Arial, sans-serif; margin: 20px; }';
 				printHtml += 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
@@ -949,17 +875,17 @@
 				printHtml += '</style></head><body>';
 
 				printHtml += '<div class="header">';
-				printHtml += '<div class="logo">★ macy\'s</div>';
-				printHtml += '<h1>Walk Report Package Check</h1>';
+				printHtml += '<div class="logo">📊 Associate Traffic Report</div>';
+				printHtml += '<h1>Shift Report — Bag Check Schedule</h1>';
 				printHtml += '</div>';
 
 				printHtml += '<table>';
 				printHtml += '<tr>';
-				printHtml += '<th>Time Of Package Check</th>';
+				printHtml += '<th>Time of Bag Check</th>';
 				printHtml += '<th>Overall Associate #</th>';
 				printHtml += '<th>Seasonals</th>';
-				printHtml += '<th>Assigned Detective to do the Package check</th>';
-				printHtml += '<th>Detective Door Assigned</th>';
+				printHtml += '<th>Assigned Officer</th>';
+				printHtml += '<th>Door Assigned</th>';
 				printHtml += '</tr>';
 
 				for (var i = 0; i < scheduleOutRows.length; i++) {
@@ -1025,9 +951,49 @@
 				}, 250);
 			}
             
-            window.procesarWalkReport = procesarWalkReport;
-            window.limpiarCampos = limpiarCampos;
-            window.printResumenTable = printResumenTable;
+            var SAMPLE_DATA = [
+                "SHIFT REPORT - SAMPLE DATA (fictional associates)",
+                "10000001 - GARCIA, MARIA      9:00A - 5:00P  S  1:00P/30   8.00  REG",
+                "10000002 - RODRIGUEZ, JAMES      9:00A - 5:00P     1:00P/30   8.00  REG",
+                "10000003 - MARTINEZ, ANA      9:00A - 5:00P  S  1:30P/30   8.00  REG",
+                "10000004 - HERNANDEZ, LUIS      9:00A - 5:00P     1:00P/30   8.00  REG",
+                "10000005 - LOPEZ, CARMEN      9:00A - 5:00P     1:30P/30   8.00  REG",
+                "10000006 - GONZALEZ, PEDRO      9:00A - 5:00P  S  1:00P/30   8.00  REG",
+                "10000007 - WILSON, SARAH      9:00A - 5:00P     1:00P/30   8.00  REG",
+                "10000008 - ANDERSON, MICHAEL      9:00A - 5:00P     1:30P/30   8.00  REG",
+                "10000009 - TAYLOR, EMILY      8:30A - 4:30P     12:30P/30   8.00  REG",
+                "10000010 - THOMAS, DAVID      8:30A - 4:30P  S  12:30P/30   8.00  REG",
+                "10000011 - MOORE, JESSICA      8:30A - 4:30P     1:00P/30   8.00  REG",
+                "10000012 - JACKSON, ROBERT      8:30A - 4:30P     12:30P/30   8.00  REG",
+                "10000013 - WHITE, ASHLEY      8:30A - 4:30P     1:00P/30   8.00  REG",
+                "10000014 - HARRIS, DANIEL      10:00A - 6:00P     2:00P/30   8.00  REG",
+                "10000015 - MARTIN, LAURA      10:00A - 6:00P  S  2:00P/30   8.00  REG",
+                "10000016 - THOMPSON, KEVIN      10:00A - 6:00P     2:30P/30   8.00  REG",
+                "10000017 - GARCIA, LUCIA      10:00A - 6:00P     2:00P/30   8.00  REG",
+                "10000018 - ROBINSON, BRIAN      10:00A - 6:00P  S  2:30P/30   8.00  REG",
+                "10000019 - CLARK, NICOLE      10:00A - 6:00P     2:00P/30   8.00  REG",
+                "10000020 - LEWIS, MARK      12:00P - 8:00P     4:00P/30   8.00  REG",
+                "10000021 - LEE, SOPHIA      12:00P - 8:00P  S  4:00P/30   8.00  REG",
+                "10000022 - WALKER, JASON      12:00P - 8:00P     4:30P/30   8.00  REG",
+                "10000023 - HALL, EMMA      12:00P - 8:00P     4:00P/30   8.00  REG",
+                "10000024 - ALLEN, CHRIS      12:00P - 8:00P     4:30P/30   8.00  REG",
+                "10000025 - YOUNG, OLIVIA      2:00P - 10:00P     6:00P/30   8.00  REG",
+                "10000026 - KING, ANTHONY      2:00P - 10:00P  S  6:00P/30   8.00  REG",
+                "10000027 - WRIGHT, ISABELLA      2:00P - 10:00P     6:30P/30   8.00  REG",
+                "10000028 - SCOTT, MATTHEW      2:00P - 10:00P     6:00P/30   8.00  REG",
+                "10000029 - GREEN, AVA      2:00P - 10:00P  S  6:30P/30   8.00  REG",
+                "10000030 - BAKER, DANIEL      2:00P - 10:00P     6:00P/30   8.00  REG",
+            ].join("\n");
+
+            function loadSampleData() {
+                document.getElementById("walkInput").value = SAMPLE_DATA;
+                processShiftReport();
+            }
+
+            window.processShiftReport = processShiftReport;
+            window.loadSampleData = loadSampleData;
+            window.clearFields = clearFields;
+            window.printSummaryTable = printSummaryTable;
             window.filterTopResults = filterTopResults;
             window.toggleDashboardSync = toggleDashboardSync;
         })();
