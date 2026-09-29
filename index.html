@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Associate Traffic Analyzer · Portfolio Project</title>
+    <title>🚶 PC's Time Analyzer</title>
     <style>
         * {
             margin: 0;
@@ -11,11 +11,24 @@
             box-sizing: border-box;
         }
         
+        :root {
+            --fs-2xs: 0.6875rem; /* dense mobile table text */
+            --fs-xs: 0.75rem;     /* table cells, fine print */
+            --fs-sm: 0.8125rem;   /* secondary labels, helper text */
+            --fs-base: 0.875rem;  /* inputs, buttons, body copy */
+            --fs-md: 0.9375rem;   /* field/section captions */
+            --fs-lg: 1.05rem;     /* footer name, minor subtitles */
+            --fs-xl: 1.3rem;      /* card/section headings (h2) */
+            --fs-2xl: 1.75rem;    /* page title (h1) */
+        }
+        
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #2d3748;
+            font-size: var(--fs-base);
+            line-height: 1.5;
         }
         
         .app-container {
@@ -33,7 +46,7 @@
         }
         
         header h1 {
-            font-size: 1.8rem;
+            font-size: var(--fs-2xl);
             font-weight: 700;
             letter-spacing: -0.025em;
         }
@@ -70,14 +83,18 @@
             margin-bottom: 1rem;
         }
         
-        .dashboard-controls label {
+        .checkbox-label {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             cursor: pointer;
+            font-size: var(--fs-sm);
+            font-weight: 500;
+            color: #4a5568;
+            margin: 0;
         }
         
-        .dashboard-controls input[type="checkbox"] {
+        .checkbox-label input[type="checkbox"] {
             width: 16px;
             height: 16px;
             cursor: pointer;
@@ -91,55 +108,6 @@
         
         #dashboardChart svg {
             width: 100%;
-        }
-        
-        nav {
-            width: 250px;
-            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-            padding: 2rem 1.5rem;
-            border-right: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-        
-        nav h3 {
-            color: #1a202c;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #667eea;
-        }
-        
-        nav ul {
-            list-style: none;
-        }
-        
-        nav li {
-            margin-bottom: 0.75rem;
-            padding: 0.75rem 1rem;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        nav li:hover {
-            background: #667eea;
-            color: white;
-            transform: translateX(5px);
-        }
-        
-        nav li.disabled {
-            color: #a0aec0;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        
-        nav li.disabled:hover {
-            background: white;
-            color: #a0aec0;
-            transform: none;
         }
         
         main {
@@ -165,7 +133,7 @@
             font-weight: 600;
             color: #1a202c;
             margin-bottom: 1rem;
-            font-size: 1.5rem;
+            font-size: var(--fs-md);
         }
         
         textarea {
@@ -174,7 +142,7 @@
             border: 2px solid #e2e8f0;
             border-radius: 8px;
             padding: 1rem;
-            font-size: 0.9rem;
+            font-size: var(--fs-base);
             resize: vertical;
             transition: border-color 0.3s ease;
             font-family: 'Monaco', 'Menlo', monospace;
@@ -196,7 +164,7 @@
         .controls-group {
             display: flex;
             gap: 1rem;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 1rem;
             flex-wrap: wrap;
         }
@@ -208,7 +176,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: var(--fs-base);
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -238,7 +206,7 @@
             padding: 0.5rem;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: var(--fs-base);
             background: white;
             cursor: pointer;
             transition: border-color 0.3s ease;
@@ -251,9 +219,23 @@
         }
         
         .filter-label {
-            font-size: 0.9rem;
+            font-size: var(--fs-sm);
             margin: 0;
             color: #4a5568;
+        }
+        
+        .filter-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
         }
         
         table {
@@ -269,16 +251,17 @@
         th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 0.3rem;
+            padding: 0.5rem 0.3rem;
             text-align: center;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: var(--fs-xs);
+            letter-spacing: 0.01em;
         }
         
         td {
-            padding: 0.3rem 0.8rem;
+            padding: 0.4rem 0.8rem;
             border-bottom: 1px solid #e2e8f0;
-            font-size: 0.8rem;
+            font-size: var(--fs-xs);
         }
         
         tr:nth-child(even) {
@@ -292,7 +275,7 @@
         
         h2 {
             color: #1a202c;
-            font-size: 1.5rem;
+            font-size: var(--fs-xl);
             font-weight: 700;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
@@ -304,7 +287,7 @@
             text-align: center;
             font-weight: 600;
             color: #1a202c;
-            font-size: 1rem;
+            font-size: var(--fs-sm);
             padding: 0.5rem;
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             border-radius: 4px;
@@ -325,60 +308,18 @@
         }
         
         .footer-name {
-            font-size: 1.2rem;
+            font-size: var(--fs-lg);
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
         
         .footer-title {
-            font-size: 1rem;
+            font-size: var(--fs-sm);
             font-weight: 600;
             color: #cbd5e0;
             margin-bottom: 1rem;
         }
         
-        .btn-accent {
-            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
-            color: white;
-        }
-
-        .btn-accent:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.4);
-        }
-
-        .demo-note {
-            margin-top: 0.75rem;
-            font-size: 0.8rem;
-            color: #4a5568;
-            background: #ebf8ff;
-            border: 1px solid #bee3f8;
-            border-radius: 8px;
-            padding: 0.6rem 0.9rem;
-        }
-
-        .footer-address {
-            font-size: 0.9rem;
-            color: #a0aec0;
-            margin-bottom: 1rem;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-
-        .footer-links a {
-            color: #90cdf4;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-
         /* Responsive Design */
         @media (max-width: 768px) {
             .container {
@@ -387,24 +328,6 @@
             
             .cards-container {
                 grid-template-columns: 1fr;
-            }
-            
-            nav {
-                width: 100%;
-                padding: 1rem;
-            }
-            
-            nav ul {
-                display: flex;
-                gap: 0.5rem;
-                overflow-x: auto;
-                padding-bottom: 0.5rem;
-            }
-            
-            nav li {
-                min-width: 120px;
-                text-align: center;
-                white-space: nowrap;
             }
             
             main {
@@ -429,16 +352,12 @@
                 justify-content: center;
             }
             
-            table {
-                font-size: 0.8rem;
-            }
-            
             th, td {
                 padding: 0.5rem;
             }
             
             header h1 {
-                font-size: 1.5rem;
+                font-size: var(--fs-xl);
             }
         }
         
@@ -455,12 +374,9 @@
                 height: 75px;
             }
             
-            table {
-                font-size: 0.7rem;
-            }
-            
             th, td {
                 padding: 0.4rem;
+                font-size: var(--fs-2xs);
             }
         }
     </style>
@@ -468,7 +384,7 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>🚶 Associate Traffic Analyzer <span style="font-size: 0.5em;">Portfolio Edition</span></h1>
+            <h1>🚶 Packet Check Time Analyzer <span style="font-size: 0.5em;">v2.8.3</span></h1>
         </header>
         
         <div class="container">
@@ -476,30 +392,27 @@
                 <div class="cards-container">
                     <div class="left-stack">
                         <div class="card">
+                            <h2>📋 Import Walk Report</h2>
                             <div class="dropdown">
-                                <label for="walkInput">Paste the shift report data here:</label>
-                                <textarea id="walkInput" placeholder="Paste shift report lines here — or click “Load sample data” to try the demo..."></textarea>
+                                <label for="walkInput">Copy the entire Walk Report page here:</label>
+                                <textarea id="walkInput" placeholder="Paste the content of the Walk Report here..."></textarea>
                                 <div class="button-group">
-                                    <button class="btn-primary" type="button" onclick="processShiftReport()">
+                                    <button class="btn-primary" type="button" onclick="procesarWalkReport()">
                                         🔄 Generate Result
                                     </button>
-                                    <button class="btn-accent" type="button" onclick="loadSampleData()">
-                                        📥 Load sample data
-                                    </button>
-                                    <button class="btn-secondary" type="button" onclick="clearFields()">
+                                    <button class="btn-secondary" type="button" onclick="limpiarCampos()">
                                         🧹 Clean
                                     </button>
                                 </div>
-                                <p class="demo-note">Portfolio demo — the sample dataset is fictional and safe to explore.</p>
                             </div>
                         </div>
 
                         <div class="card" id="dashboardCard" style="display: none;">
-                            <h2>📊 Dashboard</h2>
+                            <h2>📈 Associates by Hour</h2>
                             <div class="dashboard-controls">
-                                <label for="dashboardFollowFilter">
+                                <label class="checkbox-label" for="dashboardFollowFilter">
                                     <input type="checkbox" id="dashboardFollowFilter" onchange="toggleDashboardSync()">
-                                    Show only the current filter values
+                                    Show only the current Walk Report filter values
                                 </label>
                             </div>
                             <div id="dashboardChart"></div>
@@ -508,29 +421,35 @@
                     
                     <div class="card">
                         <div class="controls-group">
-                            <button class="btn-primary" type="button" onclick="printSummaryTable()">🖨️ Print</button>
-                            <div style="display: none;" id="filterContainer">
-                                <label class="filter-label">Peak periods to highlight:</label>
-                                <select id="topFilter" onchange="filterTopResults()">
-                                    <option value="all">All</option>
-                                </select>
+                            <button class="btn-primary" type="button" id="printButton" style="display: none;" onclick="printResumenTable()">🖨️ Print</button>
+                            <div class="filter-panel" style="display: none;" id="filterContainer">
+                                <div class="filter-row">
+                                    <label class="filter-label" for="topFilter">Select the Package Check Quantity for the day:</label>
+                                    <select id="topFilter" onchange="filterTopResults()">
+                                        <option value="all">All</option>
+                                    </select>
+                                </div>
+                                <label class="checkbox-label" for="seasonalOnlyFilter">
+                                    <input type="checkbox" id="seasonalOnlyFilter" onchange="toggleSeasonalOnlyFilter()">
+                                    Show only seasonals
+                                </label>
                             </div>
                         </div>
                         <div id="resumen"></div>
                     </div>
                 </div>
+
+                <div class="card" id="seasonalListCard" style="display: none; margin-top: 2rem;">
+                    <h2>🌱 Seasonal Schedule List</h2>
+                    <div id="seasonalListContent"></div>
+                </div>
             </main>
         </div>
         
-                <footer>
+        <footer>
             <div class="footer-content">
-                <div class="footer-name">MSD3sign</div>
-                <div class="footer-title">Portfolio Project · Associate Traffic Analyzer · by Miguel Salazar</div>
-                <div class="footer-address">Built to turn raw shift data into staffing decisions.</div>
-                <div class="footer-links">
-                    <a href="https://github.com/MSD3sign/packet-check-time-analyzer" target="_blank" rel="noopener">GitHub</a>
-                    <a href="https://www.linkedin.com/in/miguel-salazar-416703243" target="_blank" rel="noopener">LinkedIn</a>
-                </div>
+                <div class="footer-name">Intended for AP Department </div>
+                <div class="footer-title">Version v2.8.3 updated (09/29/2026)</div>
             </div>
         </footer>
     </div>
@@ -540,7 +459,9 @@
             'use strict';
             
             var allRowsData = [];
+            var allSeasonalAssociates = [];
             var dashboardSyncWithFilter = false;
+            var seasonalOnlyFilter = false;
             
             function timeToSlot(timeStr) {
                 var match = timeStr.match(/(\d{1,2}):(\d{2})([AP])/);
@@ -561,6 +482,30 @@
                 var displayHour = hour % 12 === 0 ? 12 : hour % 12;
                 return displayHour + ":" + (minute === 0 ? "00" : "30") + " " + ampm;
             }
+
+            function toTitleCase(str) {
+                return str.toLowerCase().replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+            }
+
+            function formatDisplayName(rawName) {
+                var commaIndex = rawName.indexOf(",");
+                if (commaIndex === -1) return toTitleCase(rawName);
+                var lastName = rawName.substring(0, commaIndex).trim();
+                var firstName = rawName.substring(commaIndex + 1).trim();
+                return toTitleCase((firstName + " " + lastName).trim());
+            }
+
+            function formatClockToken(token) {
+                var m = token.match(/(\d{1,2}):(\d{2})([AP])/);
+                if (!m) return token;
+                return m[1] + ":" + m[2] + " " + (m[3] === "A" ? "AM" : "PM");
+            }
+
+            function formatScheduleRange(schedule) {
+                var parts = schedule.split(" - ");
+                if (parts.length !== 2) return schedule || "\u2014";
+                return formatClockToken(parts[0]) + " - " + formatClockToken(parts[1]);
+            }
             
             function detectSeasonal(line, scheduleMatch, mealMatch, schedHrsMatch) {
                 // The FWT/SEA column sits between the Schedule column and the Meal column.
@@ -578,13 +523,14 @@
                 return /(^|[^A-Za-z0-9])([FS])([^A-Za-z0-9]|$)/.test(segment);
             }
 
-            function processShiftReport() {
+            function procesarWalkReport() {
                 var input = document.getElementById("walkInput").value;
                 var lines = input.split(/\n|\r/);
                 var resumen = {};
                 var resumenSeasonal = {};
                 var mealResumen = {};
                 var mealResumenSeasonal = {};
+                var seasonalAssociatesFound = [];
 
                 for (var i = 0; i < lines.length; i++) {
                     var line = lines[i].trim();
@@ -603,6 +549,15 @@
                         if (schedHrs === 0) continue;
 
                         var isSeasonal = detectSeasonal(line, scheduleMatch, mealMatch, schedHrsMatch);
+
+                        if (isSeasonal) {
+                            seasonalAssociatesFound.push({
+                                assoc: assoc,
+                                displayName: formatDisplayName(name),
+                                scheduleDisplay: formatScheduleRange(schedule),
+                                scheduleStartSlot: scheduleMatch ? timeToSlot(scheduleMatch[1]) : 9999
+                            });
+                        }
 
                         if (schedule) {
                             var endTime = schedule.split(" - ")[1];
@@ -648,9 +603,13 @@
                 }
 
                 allRowsData.sort(function(a, b) { return a.slot - b.slot; });
+                allSeasonalAssociates = seasonalAssociatesFound.sort(function(a, b) {
+                    return a.scheduleStartSlot - b.scheduleStartSlot || a.displayName.localeCompare(b.displayName);
+                });
+
                 generateFilterOptions();
-                displayTable(allRowsData);
-                updateDashboard();
+                refreshResultsView();
+                renderSeasonalList(allSeasonalAssociates);
                 document.getElementById("filterContainer").style.display = "flex";
             }
 
@@ -692,10 +651,26 @@
                 updateDashboard();
             }
 
-            function filterTopResults() {
+            function applySeasonalOnlyFilter(rows) {
+                if (!seasonalOnlyFilter) return rows;
+                return rows.filter(function(row) {
+                    return (row.salidaSeasonal + row.mealSeasonal) > 0;
+                });
+            }
+
+            function refreshResultsView() {
                 var filteredData = getCurrentFilteredData();
-                displayTable(filteredData);
+                displayTable(applySeasonalOnlyFilter(filteredData));
                 updateDashboard();
+            }
+
+            function filterTopResults() {
+                refreshResultsView();
+            }
+
+            function toggleSeasonalOnlyFilter() {
+                seasonalOnlyFilter = document.getElementById("seasonalOnlyFilter").checked;
+                refreshResultsView();
             }
 
             function formatCountWithSeasonal(count, seasonalCount) {
@@ -719,7 +694,7 @@
                     }
                 }
                 
-                var resumenHtml = "<h2>⏰ Shift traffic by 30 min</h2>";
+                var resumenHtml = "<h2>⏰ Walk Report by 30 min</h2>";
                 
                 if (scheduleOutRows.length > 0) {
                     resumenHtml += "<table><tr><th>Hour</th><th>Schedule Out</th><th>Meal Out</th><th>Total</th></tr>";
@@ -745,6 +720,7 @@
                 }
                 
                 document.getElementById("resumen").innerHTML = resumenHtml;
+                document.getElementById("printButton").style.display = rowsData.length > 0 ? "flex" : "none";
             }
 
             function renderDashboard(rowsData) {
@@ -794,8 +770,8 @@
                     var x = leftPad + h * (barWidth + gap);
                     var y = topPad + (chartHeight - barHeight);
                     bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + barHeight + '" rx="4" fill="url(#barGradient)"></rect>';
-                    bars += '<text x="' + (x + barWidth / 2) + '" y="' + (y - 6) + '" text-anchor="middle" font-size="12" font-weight="700" fill="#1a202c">' + value + '</text>';
-                    bars += '<text x="' + (x + barWidth / 2) + '" y="' + (topPad + chartHeight + 20) + '" text-anchor="middle" font-size="11" fill="#4a5568">' + hourLabel(hour) + '</text>';
+                    bars += '<text x="' + (x + barWidth / 2) + '" y="' + (y - 6) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#1a202c">' + value + '</text>';
+                    bars += '<text x="' + (x + barWidth / 2) + '" y="' + (topPad + chartHeight + 20) + '" text-anchor="middle" font-size="12" fill="#4a5568">' + hourLabel(hour) + '</text>';
                 }
 
                 var svg = '<svg viewBox="0 0 ' + svgWidth + ' ' + svgHeight + '" width="100%" style="max-width:100%; height:auto;">' +
@@ -810,21 +786,155 @@
                 chartContainer.innerHTML = svg;
                 dashboardCard.style.display = "flex";
             }
+
+            function renderSeasonalList(seasonalList) {
+                var card = document.getElementById("seasonalListCard");
+                var container = document.getElementById("seasonalListContent");
+
+                if (!seasonalList || seasonalList.length === 0) {
+                    card.style.display = "none";
+                    container.innerHTML = "";
+                    return;
+                }
+
+                var html = "<table><tr><th>Name</th><th>Associate #</th><th>Schedule</th></tr>";
+                for (var i = 0; i < seasonalList.length; i++) {
+                    var item = seasonalList[i];
+                    html += "<tr><td>" + item.displayName + "</td><td>" + item.assoc + "</td><td>" + item.scheduleDisplay + "</td></tr>";
+                }
+                html += "</table>";
+
+                container.innerHTML = html;
+                card.style.display = "block";
+            }
             
-            function clearFields() {
+            function limpiarCampos() {
                 document.getElementById("walkInput").value = "";
                 document.getElementById("resumen").innerHTML = "";
+                document.getElementById("printButton").style.display = "none";
                 document.getElementById("filterContainer").style.display = "none";
                 document.getElementById("topFilter").value = "all";
+                document.getElementById("seasonalOnlyFilter").checked = false;
+                seasonalOnlyFilter = false;
                 document.getElementById("dashboardCard").style.display = "none";
                 document.getElementById("dashboardChart").innerHTML = "";
                 document.getElementById("dashboardFollowFilter").checked = false;
                 dashboardSyncWithFilter = false;
+                document.getElementById("seasonalListCard").style.display = "none";
+                document.getElementById("seasonalListContent").innerHTML = "";
                 allRowsData = [];
+                allSeasonalAssociates = [];
             }
             
-           
-			function printSummaryTable() {
+           /* function printResumenTable() {
+                var resumenElement = document.getElementById("resumen");
+                
+                if (!resumenElement || !resumenElement.innerHTML.trim() || allRowsData.length === 0) {
+                    alert("Summary table not found.");
+                    return;
+                }
+
+                var today = new Date();
+                var dateStr = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
+
+                var scheduleOutRows = [];
+                var mealOutRows = [];
+                
+                for (var i = 0; i < allRowsData.length; i++) {
+                    var row = allRowsData[i];
+                    if (row.salida >= row.meal) {
+                        scheduleOutRows.push(row);
+                    } else {
+                        mealOutRows.push(row);
+                    }
+                }
+
+                var printHtml = '<!DOCTYPE html><html><head><title>Walk Report Package Check</title>';
+                printHtml += '<style>';
+                printHtml += 'body { font-family: Arial, sans-serif; margin: 20px; }';
+                printHtml += 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
+                printHtml += 'th, td { border: 1px solid #000; padding: 8px; text-align: left; }';
+                printHtml += 'th { background-color: #f0f0f0; font-weight: bold; font-size: 10pt; }';
+                printHtml += 'td { min-height: 30px; font-size: 10pt; }';
+                printHtml += '.header { text-align: center; margin-bottom: 15px; }';
+                printHtml += '.header h1 { margin: 5px 0; font-size: 16pt; }';
+                printHtml += '.logo { font-size: 20pt; font-weight: bold; }';
+                printHtml += '.section-header { background-color: #666; color: white; text-align: center; font-weight: bold; }';
+                printHtml += '.footer-row { border-top: 2px solid #000; }';
+                printHtml += '</style></head><body>';
+
+                printHtml += '<div class="header">';
+                printHtml += '<div class="logo">★ macy\'s</div>';
+                printHtml += '<h1>Walk Report Package Check</h1>';
+                printHtml += '</div>';
+
+                printHtml += '<table>';
+                printHtml += '<tr>';
+                printHtml += '<th>Time Of Package Check</th>';
+                printHtml += '<th>Overall Associate #</th>';
+                printHtml += '<th>Seasonals</th>';
+                printHtml += '<th>Assigned Detective to do the Package check</th>';
+                printHtml += '<th>Detective Door Assigned</th>';
+                printHtml += '</tr>';
+
+                for (var i = 0; i < scheduleOutRows.length; i++) {
+                    var row = scheduleOutRows[i];
+                    printHtml += '<tr>';
+                    printHtml += '<td>' + row.hora + '</td>';
+                    printHtml += '<td>' + row.total + '</td>';
+                    printHtml += '<td>&nbsp;</td>';
+                    printHtml += '<td>&nbsp;</td>';
+                    printHtml += '<td>&nbsp;</td>';
+                    printHtml += '</tr>';
+                }
+
+                if (mealOutRows.length > 0) {
+                    printHtml += '<tr class="section-header">';
+                    printHtml += '<td colspan="5">Lunch Time Only</td>';
+                    printHtml += '</tr>';
+
+                    for (var i = 0; i < mealOutRows.length; i++) {
+                        var row = mealOutRows[i];
+                        printHtml += '<tr>';
+                        printHtml += '<td>' + row.hora + '</td>';
+                        printHtml += '<td>' + row.total + '</td>';
+                        printHtml += '<td>&nbsp;</td>';
+                        printHtml += '<td>&nbsp;</td>';
+                        printHtml += '<td>&nbsp;</td>';
+                        printHtml += '</tr>';
+                    }
+                }
+
+                var totalRows = scheduleOutRows.length + mealOutRows.length + (mealOutRows.length > 0 ? 1 : 0);
+                var emptyRowsNeeded = Math.max(0, 20 - totalRows);
+                
+                for (var i = 0; i < emptyRowsNeeded; i++) {
+                    printHtml += '<tr>';
+                    printHtml += '<td>&nbsp;</td>';
+                    printHtml += '<td>&nbsp;</td>';
+                    printHtml += '<td>&nbsp;</td>';
+                    printHtml += '<td>&nbsp;</td>';
+                    printHtml += '<td>&nbsp;</td>';
+                    printHtml += '</tr>';
+                }
+
+                printHtml += '<tr class="footer-row">';
+                printHtml += '<td colspan="2"><strong>Day:</strong> ___________</td>';
+                printHtml += '<td colspan="3"><strong>Date:</strong> ' + dateStr + '</td>';
+                printHtml += '</tr>';
+
+                printHtml += '</table>';
+                printHtml += '</body></html>';
+
+                var printWindow = window.open('', '_blank');
+                printWindow.document.write(printHtml);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(function() {
+                    printWindow.print();
+                }, 250);
+            } */
+			function printResumenTable() {
 				var resumenElement = document.getElementById("resumen");
 				
 				if (!resumenElement || !resumenElement.innerHTML.trim() || allRowsData.length === 0) {
@@ -860,7 +970,7 @@
 					}
 				}
 
-				var printHtml = '<!DOCTYPE html><html><head><title>Associate Traffic Report</title>';
+				var printHtml = '<!DOCTYPE html><html><head><title>Walk Report Package Check</title>';
 				printHtml += '<style>';
 				printHtml += 'body { font-family: Arial, sans-serif; margin: 20px; }';
 				printHtml += 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
@@ -875,17 +985,17 @@
 				printHtml += '</style></head><body>';
 
 				printHtml += '<div class="header">';
-				printHtml += '<div class="logo">📊 Associate Traffic Report</div>';
-				printHtml += '<h1>Shift Report — Bag Check Schedule</h1>';
+				printHtml += '<div class="logo">★ macy\'s</div>';
+				printHtml += '<h1>Walk Report Package Check</h1>';
 				printHtml += '</div>';
 
 				printHtml += '<table>';
 				printHtml += '<tr>';
-				printHtml += '<th>Time of Bag Check</th>';
+				printHtml += '<th>Time Of Package Check</th>';
 				printHtml += '<th>Overall Associate #</th>';
 				printHtml += '<th>Seasonals</th>';
-				printHtml += '<th>Assigned Officer</th>';
-				printHtml += '<th>Door Assigned</th>';
+				printHtml += '<th>Assigned Detective to do the Package check</th>';
+				printHtml += '<th>Detective Door Assigned</th>';
 				printHtml += '</tr>';
 
 				for (var i = 0; i < scheduleOutRows.length; i++) {
@@ -951,51 +1061,12 @@
 				}, 250);
 			}
             
-            var SAMPLE_DATA = [
-                "SHIFT REPORT - SAMPLE DATA (fictional associates)",
-                "10000001 - GARCIA, MARIA      9:00A - 5:00P  S  1:00P/30   8.00  REG",
-                "10000002 - RODRIGUEZ, JAMES      9:00A - 5:00P     1:00P/30   8.00  REG",
-                "10000003 - MARTINEZ, ANA      9:00A - 5:00P  S  1:30P/30   8.00  REG",
-                "10000004 - HERNANDEZ, LUIS      9:00A - 5:00P     1:00P/30   8.00  REG",
-                "10000005 - LOPEZ, CARMEN      9:00A - 5:00P     1:30P/30   8.00  REG",
-                "10000006 - GONZALEZ, PEDRO      9:00A - 5:00P  S  1:00P/30   8.00  REG",
-                "10000007 - WILSON, SARAH      9:00A - 5:00P     1:00P/30   8.00  REG",
-                "10000008 - ANDERSON, MICHAEL      9:00A - 5:00P     1:30P/30   8.00  REG",
-                "10000009 - TAYLOR, EMILY      8:30A - 4:30P     12:30P/30   8.00  REG",
-                "10000010 - THOMAS, DAVID      8:30A - 4:30P  S  12:30P/30   8.00  REG",
-                "10000011 - MOORE, JESSICA      8:30A - 4:30P     1:00P/30   8.00  REG",
-                "10000012 - JACKSON, ROBERT      8:30A - 4:30P     12:30P/30   8.00  REG",
-                "10000013 - WHITE, ASHLEY      8:30A - 4:30P     1:00P/30   8.00  REG",
-                "10000014 - HARRIS, DANIEL      10:00A - 6:00P     2:00P/30   8.00  REG",
-                "10000015 - MARTIN, LAURA      10:00A - 6:00P  S  2:00P/30   8.00  REG",
-                "10000016 - THOMPSON, KEVIN      10:00A - 6:00P     2:30P/30   8.00  REG",
-                "10000017 - GARCIA, LUCIA      10:00A - 6:00P     2:00P/30   8.00  REG",
-                "10000018 - ROBINSON, BRIAN      10:00A - 6:00P  S  2:30P/30   8.00  REG",
-                "10000019 - CLARK, NICOLE      10:00A - 6:00P     2:00P/30   8.00  REG",
-                "10000020 - LEWIS, MARK      12:00P - 8:00P     4:00P/30   8.00  REG",
-                "10000021 - LEE, SOPHIA      12:00P - 8:00P  S  4:00P/30   8.00  REG",
-                "10000022 - WALKER, JASON      12:00P - 8:00P     4:30P/30   8.00  REG",
-                "10000023 - HALL, EMMA      12:00P - 8:00P     4:00P/30   8.00  REG",
-                "10000024 - ALLEN, CHRIS      12:00P - 8:00P     4:30P/30   8.00  REG",
-                "10000025 - YOUNG, OLIVIA      2:00P - 10:00P     6:00P/30   8.00  REG",
-                "10000026 - KING, ANTHONY      2:00P - 10:00P  S  6:00P/30   8.00  REG",
-                "10000027 - WRIGHT, ISABELLA      2:00P - 10:00P     6:30P/30   8.00  REG",
-                "10000028 - SCOTT, MATTHEW      2:00P - 10:00P     6:00P/30   8.00  REG",
-                "10000029 - GREEN, AVA      2:00P - 10:00P  S  6:30P/30   8.00  REG",
-                "10000030 - BAKER, DANIEL      2:00P - 10:00P     6:00P/30   8.00  REG",
-            ].join("\n");
-
-            function loadSampleData() {
-                document.getElementById("walkInput").value = SAMPLE_DATA;
-                processShiftReport();
-            }
-
-            window.processShiftReport = processShiftReport;
-            window.loadSampleData = loadSampleData;
-            window.clearFields = clearFields;
-            window.printSummaryTable = printSummaryTable;
+            window.procesarWalkReport = procesarWalkReport;
+            window.limpiarCampos = limpiarCampos;
+            window.printResumenTable = printResumenTable;
             window.filterTopResults = filterTopResults;
             window.toggleDashboardSync = toggleDashboardSync;
+            window.toggleSeasonalOnlyFilter = toggleSeasonalOnlyFilter;
         })();
     </script>
 </body>
