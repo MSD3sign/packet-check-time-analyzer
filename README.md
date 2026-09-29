@@ -2,7 +2,7 @@ The app is live here:
 
 https://msd3sign.github.io/packet-check-time-analyzer/
 
-# Packet Check Time Analyzer (v2.8.3)
+# Packet Check Time Analyzer (v2.8.4)
 
 Herramienta de una sola página (HTML/CSS/JS, sin dependencias externas) para analizar el
 Area Walk Report y calcular, por bloques de 30 minutos, cuántos "package checks" se
