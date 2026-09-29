@@ -384,7 +384,7 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>🚶 Packet Check Time Analyzer <span style="font-size: 0.5em;">v2.8.3</span></h1>
+            <h1>🚶 Packet Check Time Analyzer <span style="font-size: 0.5em;">v2.8.4</span></h1>
         </header>
         
         <div class="container">
@@ -449,7 +449,7 @@
         <footer>
             <div class="footer-content">
                 <div class="footer-name">Intended for AP Department </div>
-                <div class="footer-title">Version v2.8.3 updated (09/29/2026)</div>
+                <div class="footer-title">Version v2.8.4 updated (09/29/2026)</div>
             </div>
         </footer>
     </div>
@@ -723,6 +723,16 @@
                 document.getElementById("printButton").style.display = rowsData.length > 0 ? "flex" : "none";
             }
 
+            function computeHourlyTotals(rows) {
+                var totals = {};
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var hour = Math.floor(row.slot / 60);
+                    totals[hour] = (totals[hour] || 0) + row.total;
+                }
+                return totals;
+            }
+
             function renderDashboard(rowsData) {
                 var dashboardCard = document.getElementById("dashboardCard");
                 var chartContainer = document.getElementById("dashboardChart");
@@ -733,19 +743,21 @@
                     return;
                 }
 
-                var hourlyTotals = {};
-                for (var i = 0; i < rowsData.length; i++) {
-                    var row = rowsData[i];
-                    var hour = Math.floor(row.slot / 60);
-                    hourlyTotals[hour] = (hourlyTotals[hour] || 0) + row.total;
-                }
+                // The chart's scale (viewBox width and vertical max) is always derived
+                // from the full, unfiltered dataset so its proportions never change
+                // when the "sync with filter" checkbox is on — only the bars drawn change.
+                var baselineData = (allRowsData && allRowsData.length > 0) ? allRowsData : rowsData;
+                var baselineHourlyTotals = computeHourlyTotals(baselineData);
+                var baselineHours = Object.keys(baselineHourlyTotals).map(Number).sort(function(a, b) { return a - b; });
 
-                var hours = Object.keys(hourlyTotals).map(Number).sort(function(a, b) { return a - b; });
                 var maxTotal = 0;
-                for (var h = 0; h < hours.length; h++) {
-                    if (hourlyTotals[hours[h]] > maxTotal) maxTotal = hourlyTotals[hours[h]];
+                for (var h = 0; h < baselineHours.length; h++) {
+                    if (baselineHourlyTotals[baselineHours[h]] > maxTotal) maxTotal = baselineHourlyTotals[baselineHours[h]];
                 }
                 if (maxTotal === 0) maxTotal = 1;
+
+                var hourlyTotals = computeHourlyTotals(rowsData);
+                var hours = Object.keys(hourlyTotals).map(Number).sort(function(a, b) { return a - b; });
 
                 function hourLabel(hour) {
                     var ampm = hour >= 12 ? "PM" : "AM";
@@ -759,7 +771,7 @@
                 var leftPad = 10;
                 var topPad = 20;
                 var bottomPad = 40;
-                var svgWidth = leftPad + hours.length * (barWidth + gap);
+                var svgWidth = leftPad + baselineHours.length * (barWidth + gap);
                 var svgHeight = chartHeight + topPad + bottomPad;
 
                 var bars = "";
