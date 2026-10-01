@@ -2,7 +2,7 @@ The app is live here:
 
 https://msd3sign.github.io/packet-check-time-analyzer/
 
-# Packet Check Time Analyzer (v2.8.4)
+# Packet Check Time Analyzer (v2.8.5)
 
 Herramienta de una sola página (HTML/CSS/JS, sin dependencias externas) para analizar el
 Area Walk Report y calcular, por bloques de 30 minutos, cuántos "package checks" se
@@ -32,3 +32,8 @@ Una vez subido este repo a GitHub:
   sincronizarse o no con el filtro de la tabla).
 - Filtro por cantidad de package checks del día.
 - Impresión lista para llenar en piso.
+
+## Versiones
+- **v2.8.5** (10/01/2026): el campo "Date:" de la hoja impresa ahora usa la fecha del encabezado del reporte pegado ("Area Walk Report for: ...") en vez de la fecha de hoy, para poder analizar datos de otros días.
+- **v2.8.4** (09/29/2026): al filtrar el gráfico "Associates by Hour" mantiene altura, grosor de barras y escala vertical (calculados con los datos completos).
+- **v2.8.3** (09/29/2026): módulos Import Walk Report, Walk Report by 30 min, Associates by Hour, Seasonal Schedule List; botón print condicional; filtros y lista reorganizados.
