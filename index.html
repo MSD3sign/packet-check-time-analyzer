@@ -384,7 +384,7 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>🚶 Packet Check Time Analyzer <span style="font-size: 0.5em;">v2.8.4</span></h1>
+            <h1>🚶 Packet Check Time Analyzer <span style="font-size: 0.5em;">v2.8.5</span></h1>
         </header>
         
         <div class="container">
@@ -449,9 +449,8 @@
         <footer>
             <div class="footer-content">
                 <div class="footer-name">Intended for AP Department </div>
-                <div class="footer-title">Version v2.8.4 updated (09/29/2026)</div>
-            </div>
-        </footer>
+                <div class="footer-title">Version v2.8.5 updated (09/29/2026)</div>
+            </div>        </footer>
     </div>
 
     <script type="text/javascript">
@@ -462,6 +461,7 @@
             var allSeasonalAssociates = [];
             var dashboardSyncWithFilter = false;
             var seasonalOnlyFilter = false;
+            var reportDateStr = "";
             
             function timeToSlot(timeStr) {
                 var match = timeStr.match(/(\d{1,2}):(\d{2})([AP])/);
@@ -526,6 +526,14 @@
             function procesarWalkReport() {
                 var input = document.getElementById("walkInput").value;
                 var lines = input.split(/\n|\r/);
+
+                // Pull the report's own date from a header line like:
+                // "Area Walk Report for: Thursday 10/01/2026"
+                var dateHeaderMatch = input.match(/Area Walk Report for:\s*\w+\s+(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                reportDateStr = dateHeaderMatch
+                    ? (parseInt(dateHeaderMatch[1], 10) + "/" + parseInt(dateHeaderMatch[2], 10) + "/" + dateHeaderMatch[3])
+                    : "";
+
                 var resumen = {};
                 var resumenSeasonal = {};
                 var mealResumen = {};
@@ -836,6 +844,7 @@
                 document.getElementById("seasonalListContent").innerHTML = "";
                 allRowsData = [];
                 allSeasonalAssociates = [];
+                reportDateStr = "";
             }
             
            /* function printResumenTable() {
@@ -955,7 +964,7 @@
 				}
 
 				var today = new Date();
-				var dateStr = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
+				var dateStr = reportDateStr || ((today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear());
 
 				// CAMBIO PRINCIPAL: Obtener los datos filtrados actualmente mostrados
 				var topCount = document.getElementById("topFilter").value;
