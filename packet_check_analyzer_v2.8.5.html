@@ -1063,7 +1063,14 @@
 				}
 				/* arreglando dia   */
 				var daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];  
-				var dayName = daysOfWeek[today.getDay()];
+				var dayName;
+				if (reportDateStr) {
+					var reportDateParts = reportDateStr.split('/');
+					var reportDateObj = new Date(parseInt(reportDateParts[2], 10), parseInt(reportDateParts[0], 10) - 1, parseInt(reportDateParts[1], 10));
+					dayName = daysOfWeek[reportDateObj.getDay()];
+				} else {
+					dayName = daysOfWeek[today.getDay()];
+				}
 
 				printHtml += '<tr class="footer-row">';
 				printHtml += '<td colspan="2"><strong>Day:</strong> ' + dayName + '</td>';
