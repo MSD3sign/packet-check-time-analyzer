@@ -34,6 +34,6 @@ Una vez subido este repo a GitHub:
 - Impresión lista para llenar en piso.
 
 ## Versiones
-- **v2.8.5** (10/01/2026): el campo "Date:" de la hoja impresa ahora usa la fecha del encabezado del reporte pegado ("Area Walk Report for: ...") en vez de la fecha de hoy, para poder analizar datos de otros días.
+- **v2.8.5** (10/01/2026): el campo "Date:" de la hoja impresa ahora usa la fecha del encabezado del reporte pegado ("Area Walk Report for: ...") en vez de la fecha de hoy, para poder analizar datos de otros días. El campo "Day:" se calcula desde esa misma fecha, así Day y Date siempre corresponden.
 - **v2.8.4** (09/29/2026): al filtrar el gráfico "Associates by Hour" mantiene altura, grosor de barras y escala vertical (calculados con los datos completos).
 - **v2.8.3** (09/29/2026): módulos Import Walk Report, Walk Report by 30 min, Associates by Hour, Seasonal Schedule List; botón print condicional; filtros y lista reorganizados.
