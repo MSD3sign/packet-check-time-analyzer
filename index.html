@@ -231,6 +231,19 @@
             gap: 0.75rem;
         }
         
+        .diagnostics-summary {
+          margin-top: 0.75rem;
+          padding: 0.75rem 1rem;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          font-size: var(--fs-sm);
+          color: #4a5568;
+          line-height: 1.6;
+        }
+        .diagnostics-summary strong { color: #1a202c; }
+        .diagnostics-summary .diagnostics-warning { color: #f59e0b; }
+
         .filter-row {
             display: flex;
             align-items: center;
@@ -384,7 +397,7 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>🚶 Packet Check Time Analyzer <span style="font-size: 0.5em;">v2.8.5</span></h1>
+            <h1>🚶 Packet Check Time Analyzer <span style="font-size: 0.5em;">v3.0</span></h1>
         </header>
         
         <div class="container">
@@ -404,6 +417,7 @@
                                         🧹 Clean
                                     </button>
                                 </div>
+                                <div id="diagnosticsSummary" class="diagnostics-summary" style="display: none;"></div>
                             </div>
                         </div>
 
@@ -449,7 +463,7 @@
         <footer>
             <div class="footer-content">
                 <div class="footer-name">Intended for AP Department </div>
-                <div class="footer-title">Version v2.8.5 updated (09/29/2026)</div>
+                <div class="footer-title">Version v3.0 updated (09/29/2026)</div>
             </div>        </footer>
     </div>
 
@@ -469,6 +483,7 @@
                 var hour = parseInt(match[1], 10);
                 var minute = parseInt(match[2], 10);
                 var ampm = match[3];
+                if (hour < 1 || hour > 12 || minute < 0 || minute > 59) return null;
                 if (ampm === "P" && hour !== 12) hour += 12;
                 if (ampm === "A" && hour === 12) hour = 0;
                 var totalMinutes = hour * 60 + minute;
@@ -481,6 +496,15 @@
                 var ampm = hour >= 12 ? "PM" : "AM";
                 var displayHour = hour % 12 === 0 ? 12 : hour % 12;
                 return displayHour + ":" + (minute === 0 ? "00" : "30") + " " + ampm;
+            }
+
+            function escapeHtml(str) {
+              return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
             }
 
             function toTitleCase(str) {
@@ -526,26 +550,63 @@
             function procesarWalkReport() {
                 var input = document.getElementById("walkInput").value;
                 var lines = input.split(/\n|\r/);
+                if (!/^\d{8} -/m.test(input)) {
+                  alert("The pasted text doesn't look like a valid Area Walk Report. Please paste the full report and try again.");
+                  return;
+                }
 
                 // Pull the report's own date from a header line like:
                 // "Area Walk Report for: Thursday 10/01/2026"
-                var dateHeaderMatch = input.match(/Area Walk Report for:\s*\w+\s+(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-                reportDateStr = dateHeaderMatch
-                    ? (parseInt(dateHeaderMatch[1], 10) + "/" + parseInt(dateHeaderMatch[2], 10) + "/" + dateHeaderMatch[3])
-                    : "";
+                var dateHeaderMatch = input.match(/Area Walk Report for:\s*(\w+)\s+(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                reportDateStr = "";
+                var reportDateFound = false;
+                if (dateHeaderMatch) {
+                  var headerWeekday = dateHeaderMatch[1];
+                  var headerMonth = parseInt(dateHeaderMatch[2], 10);
+                  var headerDay = parseInt(dateHeaderMatch[3], 10);
+                  var headerYear = parseInt(dateHeaderMatch[4], 10);
+                  if (headerMonth >= 1 && headerMonth <= 12 && headerDay >= 1 && headerDay <= 31) {
+                    var headerDateObj = new Date(headerYear, headerMonth - 1, headerDay);
+                    var isRealCalendarDate = headerDateObj.getFullYear() === headerYear &&
+                      headerDateObj.getMonth() === headerMonth - 1 &&
+                      headerDateObj.getDate() === headerDay;
+                    if (isRealCalendarDate) {
+                      var headerDaysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                      var weekdayMatches = headerDaysOfWeek[headerDateObj.getDay()].toLowerCase() === headerWeekday.toLowerCase();
+                      if (weekdayMatches) {
+                        reportDateStr = headerMonth + "/" + headerDay + "/" + headerYear;
+                        reportDateFound = true;
+                      }
+                    }
+                  }
+                }
 
                 var resumen = {};
                 var resumenSeasonal = {};
                 var mealResumen = {};
                 var mealResumenSeasonal = {};
                 var seasonalAssociatesFound = [];
+                var totalLines = lines.length;
+                var processedLines = 0;
+                var ignoredLines = 0;
+                var invalidLineCount = 0;
+                var currentArea = "";
 
                 for (var i = 0; i < lines.length; i++) {
                     var line = lines[i].trim();
+
+                    // Track the current area from header lines like "AREA: 0403 - Clinique".
+                    // These are non-data lines, so they keep counting as ignored (same as before).
+                    var areaMatch = line.match(/^AREA:\s*\d+(?:\s*-\s*(.*))?$/);
+                    if (areaMatch) {
+                        currentArea = areaMatch[1] ? areaMatch[1].trim() : "";
+                        ignoredLines++;
+                        continue;
+                    }
+
                     if (/^\d{8} -/.test(line) && line.indexOf("00000000 - OPEN") === -1) {
-                        var parts = line.split(/\s{2,}|\t+/).filter(function(p) { return p.trim() !== ""; });
                         var assocMatch = line.match(/^(\d{8}) - ([^\d]+)/);
-                        if (!assocMatch) continue;
+                        if (!assocMatch) { invalidLineCount++; continue; }
                         var assoc = assocMatch[1];
                         var name = assocMatch[2].trim().replace(/,$/, "");
                         var scheduleMatch = line.match(/(\d{1,2}:\d{2}[AP]) - (\d{1,2}:\d{2}[AP])/);
@@ -553,8 +614,10 @@
                         var mealMatch = line.match(/(\d{1,2}:\d{2}[AP])\/\d{2}/);
                         var meal = mealMatch ? mealMatch[0] : "";
                         var schedHrsMatch = line.match(/\s(\d+\.\d{2})\s/);
-                        var schedHrs = schedHrsMatch ? parseFloat(schedHrsMatch[1]) : 0;
-                        if (schedHrs === 0) continue;
+                        var schedHrs = schedHrsMatch ? parseFloat(schedHrsMatch[1]) : null;
+                        if (schedHrs === null) { invalidLineCount++; continue; }
+                        if (schedHrs === 0) { ignoredLines++; continue; }
+                        processedLines++;
 
                         var isSeasonal = detectSeasonal(line, scheduleMatch, mealMatch, schedHrsMatch);
 
@@ -562,6 +625,7 @@
                             seasonalAssociatesFound.push({
                                 assoc: assoc,
                                 displayName: formatDisplayName(name),
+                                department: currentArea,
                                 scheduleDisplay: formatScheduleRange(schedule),
                                 scheduleStartSlot: scheduleMatch ? timeToSlot(scheduleMatch[1]) : 9999
                             });
@@ -586,8 +650,12 @@
                                 if (isSeasonal) {
                                     mealResumenSeasonal[slot] = (mealResumenSeasonal[slot] || 0) + 1;
                                 }
+                            } else {
+                                ignoredLines++;
                             }
                         }
+                    } else {
+                        ignoredLines++;
                     }
                 }
 
@@ -618,6 +686,7 @@
                 generateFilterOptions();
                 refreshResultsView();
                 renderSeasonalList(allSeasonalAssociates);
+                renderDiagnostics({ processed: processedLines, ignored: ignoredLines, invalid: invalidLineCount, reportDateFound: reportDateFound });
                 document.getElementById("filterContainer").style.display = "flex";
             }
 
@@ -807,6 +876,18 @@
                 dashboardCard.style.display = "flex";
             }
 
+            function renderDiagnostics(stats) {
+              var container = document.getElementById("diagnosticsSummary");
+              var html = "Lines processed: <strong>" + stats.processed + "</strong> &middot; " +
+                "Ignored (non-data lines): <strong>" + stats.ignored + "</strong> &middot; " +
+                "Invalid (parse errors): <strong" + (stats.invalid > 0 ? ' class="diagnostics-warning"' : "") + ">" + stats.invalid + "</strong>";
+              if (!stats.reportDateFound) {
+                html += "<br>Report date header not detected or inconsistent — the printed sheet will use today's date as a fallback.";
+              }
+              container.innerHTML = html;
+              container.style.display = "block";
+            }
+
             function renderSeasonalList(seasonalList) {
                 var card = document.getElementById("seasonalListCard");
                 var container = document.getElementById("seasonalListContent");
@@ -817,10 +898,10 @@
                     return;
                 }
 
-                var html = "<table><tr><th>Name</th><th>Associate #</th><th>Schedule</th></tr>";
+                var html = "<table><tr><th>Associate Name</th><th>Departamento</th><th>Associate #</th><th>Schedule</th></tr>";
                 for (var i = 0; i < seasonalList.length; i++) {
                     var item = seasonalList[i];
-                    html += "<tr><td>" + item.displayName + "</td><td>" + item.assoc + "</td><td>" + item.scheduleDisplay + "</td></tr>";
+                    html += "<tr><td>" + escapeHtml(item.displayName) + "</td><td>" + escapeHtml(item.department) + "</td><td>" + escapeHtml(item.assoc) + "</td><td>" + escapeHtml(item.scheduleDisplay) + "</td></tr>";
                 }
                 html += "</table>";
 
@@ -842,119 +923,12 @@
                 dashboardSyncWithFilter = false;
                 document.getElementById("seasonalListCard").style.display = "none";
                 document.getElementById("seasonalListContent").innerHTML = "";
+                document.getElementById("diagnosticsSummary").style.display = "none";
+                document.getElementById("diagnosticsSummary").innerHTML = "";
                 allRowsData = [];
                 allSeasonalAssociates = [];
                 reportDateStr = "";
             }
-            
-           /* function printResumenTable() {
-                var resumenElement = document.getElementById("resumen");
-                
-                if (!resumenElement || !resumenElement.innerHTML.trim() || allRowsData.length === 0) {
-                    alert("Summary table not found.");
-                    return;
-                }
-
-                var today = new Date();
-                var dateStr = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
-
-                var scheduleOutRows = [];
-                var mealOutRows = [];
-                
-                for (var i = 0; i < allRowsData.length; i++) {
-                    var row = allRowsData[i];
-                    if (row.salida >= row.meal) {
-                        scheduleOutRows.push(row);
-                    } else {
-                        mealOutRows.push(row);
-                    }
-                }
-
-                var printHtml = '<!DOCTYPE html><html><head><title>Walk Report Package Check</title>';
-                printHtml += '<style>';
-                printHtml += 'body { font-family: Arial, sans-serif; margin: 20px; }';
-                printHtml += 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
-                printHtml += 'th, td { border: 1px solid #000; padding: 8px; text-align: left; }';
-                printHtml += 'th { background-color: #f0f0f0; font-weight: bold; font-size: 10pt; }';
-                printHtml += 'td { min-height: 30px; font-size: 10pt; }';
-                printHtml += '.header { text-align: center; margin-bottom: 15px; }';
-                printHtml += '.header h1 { margin: 5px 0; font-size: 16pt; }';
-                printHtml += '.logo { font-size: 20pt; font-weight: bold; }';
-                printHtml += '.section-header { background-color: #666; color: white; text-align: center; font-weight: bold; }';
-                printHtml += '.footer-row { border-top: 2px solid #000; }';
-                printHtml += '</style></head><body>';
-
-                printHtml += '<div class="header">';
-                printHtml += '<div class="logo">★ macy\'s</div>';
-                printHtml += '<h1>Walk Report Package Check</h1>';
-                printHtml += '</div>';
-
-                printHtml += '<table>';
-                printHtml += '<tr>';
-                printHtml += '<th>Time Of Package Check</th>';
-                printHtml += '<th>Overall Associate #</th>';
-                printHtml += '<th>Seasonals</th>';
-                printHtml += '<th>Assigned Detective to do the Package check</th>';
-                printHtml += '<th>Detective Door Assigned</th>';
-                printHtml += '</tr>';
-
-                for (var i = 0; i < scheduleOutRows.length; i++) {
-                    var row = scheduleOutRows[i];
-                    printHtml += '<tr>';
-                    printHtml += '<td>' + row.hora + '</td>';
-                    printHtml += '<td>' + row.total + '</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '</tr>';
-                }
-
-                if (mealOutRows.length > 0) {
-                    printHtml += '<tr class="section-header">';
-                    printHtml += '<td colspan="5">Lunch Time Only</td>';
-                    printHtml += '</tr>';
-
-                    for (var i = 0; i < mealOutRows.length; i++) {
-                        var row = mealOutRows[i];
-                        printHtml += '<tr>';
-                        printHtml += '<td>' + row.hora + '</td>';
-                        printHtml += '<td>' + row.total + '</td>';
-                        printHtml += '<td>&nbsp;</td>';
-                        printHtml += '<td>&nbsp;</td>';
-                        printHtml += '<td>&nbsp;</td>';
-                        printHtml += '</tr>';
-                    }
-                }
-
-                var totalRows = scheduleOutRows.length + mealOutRows.length + (mealOutRows.length > 0 ? 1 : 0);
-                var emptyRowsNeeded = Math.max(0, 20 - totalRows);
-                
-                for (var i = 0; i < emptyRowsNeeded; i++) {
-                    printHtml += '<tr>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '<td>&nbsp;</td>';
-                    printHtml += '</tr>';
-                }
-
-                printHtml += '<tr class="footer-row">';
-                printHtml += '<td colspan="2"><strong>Day:</strong> ___________</td>';
-                printHtml += '<td colspan="3"><strong>Date:</strong> ' + dateStr + '</td>';
-                printHtml += '</tr>';
-
-                printHtml += '</table>';
-                printHtml += '</body></html>';
-
-                var printWindow = window.open('', '_blank');
-                printWindow.document.write(printHtml);
-                printWindow.document.close();
-                printWindow.focus();
-                setTimeout(function() {
-                    printWindow.print();
-                }, 250);
-            } */
 			function printResumenTable() {
 				var resumenElement = document.getElementById("resumen");
 				
@@ -966,19 +940,15 @@
 				var today = new Date();
 				var dateStr = reportDateStr || ((today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear());
 
-				// CAMBIO PRINCIPAL: Obtener los datos filtrados actualmente mostrados
-				var topCount = document.getElementById("topFilter").value;
-				var currentDisplayData;
-				
-				if (topCount === "all") {
-					currentDisplayData = allRowsData;
-				} else {
-					var sortedByTotal = allRowsData.slice().sort(function(a, b) { return b.total - a.total; });
-					currentDisplayData = sortedByTotal.slice(0, parseInt(topCount, 10));
-					currentDisplayData.sort(function(a, b) { return a.slot - b.slot; });
-				}
+				// Reutilizar EXACTAMENTE los mismos helpers que arman la tabla visible
+				// (select de cantidad + checkbox "Show only seasonals"), para garantizar
+				// que lo impreso coincide siempre con lo que se ve en pantalla.
+				var currentDisplayData = applySeasonalOnlyFilter(getCurrentFilteredData());
 
-				// Usar currentDisplayData en lugar de allRowsData
+				if (currentDisplayData.length === 0) {
+					alert("No visible results to print. Adjust the filters and try again.");
+					return;
+				}
 				var scheduleOutRows = [];
 				var mealOutRows = [];
 				
@@ -991,102 +961,63 @@
 					}
 				}
 
-				var printHtml = '<!DOCTYPE html><html><head><title>Walk Report Package Check</title>';
-				printHtml += '<style>';
-				printHtml += 'body { font-family: Arial, sans-serif; margin: 20px; }';
-				printHtml += 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
-				printHtml += 'th, td { border: 1px solid #000; padding: 8px; text-align: left; }';
-				printHtml += 'th { background-color: #f0f0f0; font-weight: bold; font-size: 10pt; }';
-				printHtml += 'td { min-height: 30px; font-size: 10pt; }';
-				printHtml += '.header { text-align: center; margin-bottom: 15px; }';
-				printHtml += '.header h1 { margin: 5px 0; font-size: 16pt; }';
-				printHtml += '.logo { font-size: 20pt; font-weight: bold; }';
-				printHtml += '.section-header { background-color: #666; color: white; text-align: center; font-weight: bold; }';
-				printHtml += '.footer-row { border-top: 2px solid #000; }';
-				printHtml += '</style></head><body>';
-
-				printHtml += '<div class="header">';
-				printHtml += '<div class="logo">★ macy\'s</div>';
-				printHtml += '<h1>Walk Report Package Check</h1>';
-				printHtml += '</div>';
-
-				printHtml += '<table>';
-				printHtml += '<tr>';
-				printHtml += '<th>Time Of Package Check</th>';
-				printHtml += '<th>Overall Associate #</th>';
-				printHtml += '<th>Seasonals</th>';
-				printHtml += '<th>Assigned Detective to do the Package check</th>';
-				printHtml += '<th>Detective Door Assigned</th>';
-				printHtml += '</tr>';
-
+				var printWindow = window.open('', '_blank');
+				if (!printWindow) { alert("Unable to open print window."); return; }
+				var pdoc = printWindow.document;
+				var NBSP = '\u00A0';
+				function makeEl(tag, text) { var node = pdoc.createElement(tag); if (text !== undefined) { node.textContent = text; } return node; }
+				function makeRow(cells) { var tr = pdoc.createElement('tr'); for (var c = 0; c < cells.length; c++) { tr.appendChild(makeEl('td', cells[c])); } return tr; }
+				pdoc.title = 'Walk Report Package Check';
+				pdoc.head.appendChild(makeEl('style', 'body { font-family: Arial, sans-serif; margin: 20px; }' + 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }' + 'th, td { border: 1px solid #000; padding: 8px; text-align: left; }' + 'th { background-color: #f0f0f0; font-weight: bold; font-size: 10pt; }' + 'td { min-height: 30px; font-size: 10pt; }' + '.header { text-align: center; margin-bottom: 15px; }' + '.header h1 { margin: 5px 0; font-size: 16pt; }' + '.logo { font-size: 20pt; font-weight: bold; }' + '.section-header { background-color: #666; color: white; text-align: center; font-weight: bold; }' + '.footer-row { border-top: 2px solid #000; }'));
+				var headerDiv = makeEl('div'); headerDiv.className = 'header';
+				var logoDiv = makeEl('div', "★ macy's"); logoDiv.className = 'logo'; headerDiv.appendChild(logoDiv);
+				headerDiv.appendChild(makeEl('h1', 'Walk Report Package Check'));
+				pdoc.body.appendChild(headerDiv);
+				var table = pdoc.createElement('table');
+				var tbody = pdoc.createElement('tbody');
+				table.appendChild(tbody);
+				var headRow = pdoc.createElement('tr');
+				['Time Of Package Check', 'Overall Associate #', 'Seasonals', 'Assigned Detective to do the Package check', 'Detective Door Assigned'].forEach(function(label) { headRow.appendChild(makeEl('th', label)); });
+				tbody.appendChild(headRow);
 				for (var i = 0; i < scheduleOutRows.length; i++) {
-					var row = scheduleOutRows[i];
-					var seasonalTotal = (row.salidaSeasonal || 0) + (row.mealSeasonal || 0);
-					printHtml += '<tr>';
-					printHtml += '<td>' + row.hora + '</td>';
-					printHtml += '<td>' + row.total + '</td>';
-					printHtml += '<td>' + (seasonalTotal > 0 ? seasonalTotal : '&nbsp;') + '</td>';
-					printHtml += '<td>&nbsp;</td>';
-					printHtml += '<td>&nbsp;</td>';
-					printHtml += '</tr>';
+				  var row = scheduleOutRows[i];
+				  var seasonalTotal = (row.salidaSeasonal || 0) + (row.mealSeasonal || 0);
+				  tbody.appendChild(makeRow([row.hora, String(row.total), seasonalTotal > 0 ? String(seasonalTotal) : NBSP, NBSP, NBSP]));
 				}
-
 				if (mealOutRows.length > 0) {
-					printHtml += '<tr class="section-header">';
-					printHtml += '<td colspan="5">Lunch Time Only</td>';
-					printHtml += '</tr>';
-
-					for (var i = 0; i < mealOutRows.length; i++) {
-						var row = mealOutRows[i];
-						var seasonalTotal = (row.salidaSeasonal || 0) + (row.mealSeasonal || 0);
-						printHtml += '<tr>';
-						printHtml += '<td>' + row.hora + '</td>';
-						printHtml += '<td>' + row.total + '</td>';
-						printHtml += '<td>' + (seasonalTotal > 0 ? seasonalTotal : '&nbsp;') + '</td>';
-						printHtml += '<td>&nbsp;</td>';
-						printHtml += '<td>&nbsp;</td>';
-						printHtml += '</tr>';
-					}
+				  var lunchRow = pdoc.createElement('tr'); lunchRow.className = 'section-header';
+				  var lunchCell = makeEl('td', 'Lunch Time Only'); lunchCell.setAttribute('colspan', '5');
+				  lunchRow.appendChild(lunchCell); tbody.appendChild(lunchRow);
+				  for (var i = 0; i < mealOutRows.length; i++) {
+				    var row = mealOutRows[i];
+				    var seasonalTotal = (row.salidaSeasonal || 0) + (row.mealSeasonal || 0);
+				    tbody.appendChild(makeRow([row.hora, String(row.total), seasonalTotal > 0 ? String(seasonalTotal) : NBSP, NBSP, NBSP]));
+				  }
 				}
-
 				var totalRows = scheduleOutRows.length + mealOutRows.length + (mealOutRows.length > 0 ? 1 : 0);
 				var emptyRowsNeeded = Math.max(0, 20 - totalRows);
-				
-				for (var i = 0; i < emptyRowsNeeded; i++) {
-					printHtml += '<tr>';
-					printHtml += '<td>&nbsp;</td>';
-					printHtml += '<td>&nbsp;</td>';
-					printHtml += '<td>&nbsp;</td>';
-					printHtml += '<td>&nbsp;</td>';
-					printHtml += '<td>&nbsp;</td>';
-					printHtml += '</tr>';
-				}
-				/* arreglando dia   */
-				var daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];  
+				for (var e = 0; e < emptyRowsNeeded; e++) { tbody.appendChild(makeRow([NBSP, NBSP, NBSP, NBSP, NBSP])); }
+				var daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 				var dayName;
 				if (reportDateStr) {
-					var reportDateParts = reportDateStr.split('/');
-					var reportDateObj = new Date(parseInt(reportDateParts[2], 10), parseInt(reportDateParts[0], 10) - 1, parseInt(reportDateParts[1], 10));
-					dayName = daysOfWeek[reportDateObj.getDay()];
+				  var reportDateParts = reportDateStr.split('/');
+				  var reportDateObj = new Date(parseInt(reportDateParts[2], 10), parseInt(reportDateParts[0], 10) - 1, parseInt(reportDateParts[1], 10));
+				  dayName = daysOfWeek[reportDateObj.getDay()];
 				} else {
-					dayName = daysOfWeek[today.getDay()];
+				  dayName = daysOfWeek[today.getDay()];
 				}
-
-				printHtml += '<tr class="footer-row">';
-				printHtml += '<td colspan="2"><strong>Day:</strong> ' + dayName + '</td>';
-				printHtml += '<td colspan="3"><strong>Date:</strong> ' + dateStr + '</td>';
-				printHtml += '</tr>';
-
-				printHtml += '</table>';
-				printHtml += '</body></html>';
-
-				var printWindow = window.open('', '_blank');
-				printWindow.document.write(printHtml);
-				printWindow.document.close();
+				var footerRow = pdoc.createElement('tr'); footerRow.className = 'footer-row';
+				var dayCell = pdoc.createElement('td'); dayCell.setAttribute('colspan', '2');
+				dayCell.appendChild(makeEl('strong', 'Day:'));
+				dayCell.appendChild(pdoc.createTextNode(' ' + dayName));
+				var dateCell = pdoc.createElement('td'); dateCell.setAttribute('colspan', '3');
+				dateCell.appendChild(makeEl('strong', 'Date:'));
+				dateCell.appendChild(pdoc.createTextNode(' ' + dateStr));
+				footerRow.appendChild(dayCell); footerRow.appendChild(dateCell);
+				tbody.appendChild(footerRow);
+				pdoc.body.appendChild(table);
 				printWindow.focus();
-				setTimeout(function() {
-					printWindow.print();
-				}, 250);
+				setTimeout(function() { printWindow.print(); }, 250);
 			}
             
             window.procesarWalkReport = procesarWalkReport;
